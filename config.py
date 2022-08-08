@@ -12,7 +12,7 @@ STEP_4_JSON_FILE = "JSON/step_4_groups_with_default_names.json"
 STEP_5_JSON_FILE = "JSON/step_5_groups_without_job_steps_duplicate.json"
 STEP_6_JSON_FILE = "JSON/step_6_update_zero_levels.json"
 
-DATABASE_NAME = 'HeadHunterProfessions.db'
+DATABASE_NAME = 'TrajectoryProfessions.db'
 PROFESSIONS_FOLDER_PATH = "Professions" 
 CURRENT_MONTH = f"{date.today().month}.{date.today().year}" # для истории создается папка с текущей датой
 

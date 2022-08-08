@@ -16,16 +16,16 @@ import steps.step_7_join_similar_trajectories as step_7
 
 
 class Trajectory:
-    def __init__(self, professions_db: str, logging_dir: str):
+    def __init__(self, professions_db: str, db_tablename:str, logging_dir: str):
         self.professions_db = professions_db
         self.logging_dir = logging_dir
-        self.db_table_name = "Маркетинг___Реклама____PR"
+        self.db_table_name = db_tablename
 
     def parse_current_profession(self) -> None:
         log = tools.start_logging(logfile="step_1.log", folder=self.logging_dir)
         excel_data = tools.connect_to_excel(path=self.professions_db)
         console.log("[green] Start parsing professions")
-        for item in track(range(len(excel_data.names)), description="[yellow]HH.ru parser progress"):
+        for item in track(range(len(excel_data.names)), description="[yellow]Profession parsing progress"):
             log.debug("Searching profession - %s", excel_data.names[item])
             
             self.db_table_name = excel_data.area
@@ -95,21 +95,22 @@ class Trajectory:
     
 
 def create_trajectory(professions_path: str):
-    trajectory = Trajectory(professions_db=os.path.join(config.PROFESSIONS_FOLDER_PATH, professions_path), logging_dir=ex_file.replace(".xlsx", ''))
-    # trajectory.parse_current_profession()
-    trajectory.collect_data_from_sql_to_json()
-    trajectory.remove_repeat_groupes()
-    trajectory.rename_to_default_names()
-    trajectory.join_reset_steps()
-    trajectory.detect_profession_experience_time()
-    trajectory.step_7()
+    tablename = professions_path.replace(" ", '_').replace('.xlsx', '')
+    trajectory = Trajectory(professions_db=os.path.join(config.PROFESSIONS_FOLDER_PATH, professions_path), db_tablename=tablename, logging_dir=ex_file.replace(".xlsx", ''))
+    trajectory.parse_current_profession()
+    # trajectory.collect_data_from_sql_to_json()
+    # trajectory.remove_repeat_groupes()
+    # trajectory.rename_to_default_names()
+    # trajectory.join_reset_steps()
+    # trajectory.detect_profession_experience_time()
+    # trajectory.step_7()
 
 if __name__ == "__main__":
     console = Console()
 
     for ex_file in os.listdir(path=config.PROFESSIONS_FOLDER_PATH):
         if ex_file.endswith(".xlsx"):
-            if ex_file == "43 Маркетинг _ Реклама. _ PR.xlsx":
+            if ex_file == "23 Управление персоналом.xlsx":
                 create_trajectory(professions_path=ex_file)
                 break
     

@@ -74,7 +74,7 @@ class Resume:
         """Функция запускает методы парсинга отдельных блоков резюме и передает результат в виде списка или списка кортежей функции data_resume_list"""
 
         url, self.resume_dateUpdate = resume
-        print(f"{self.resume_dateUpdate}")
+        # print(f"{self.resume_dateUpdate}")
         logging.info('Parsing resume...')
         try:
             self.req = requests.get(url, headers=self.headers)
