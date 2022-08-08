@@ -2,8 +2,8 @@
 
 import logging
 import re
-import settings
-from settings import ResumeGroup
+import tools, config
+from config import ResumeGroup
 
 def join_steps(log:logging, data: list[ResumeGroup]) -> tuple[list[ResumeGroup], set]:
     duplicate_set = set()
@@ -20,7 +20,7 @@ def join_steps(log:logging, data: list[ResumeGroup]) -> tuple[list[ResumeGroup],
                 branch_second = carrerSteps[step_two].branch
 
                 if branch_first.lower() == branch_second.lower():
-                    print(carrerSteps[step_one].db_id, carrerSteps[step_two].db_id)
+                    # print(carrerSteps[step_one].db_id, carrerSteps[step_two].db_id)
                     log.info("Одинаковые этапы: %s %s", post_first, resume.ID)
                     merged_interval = ' — '.join((
                         carrerSteps[step_one].experience_interval.split('—')[0],
@@ -29,7 +29,7 @@ def join_steps(log:logging, data: list[ResumeGroup]) -> tuple[list[ResumeGroup],
                     merged_duration = merge_durations(carrerSteps, step_one, step_two)
                     duplicate_set.add(carrerSteps[step_one].db_id)
                     carrerSteps[step_one].experience_interval = merged_interval
-                    print(f"\tПервый: {carrerSteps[step_one].experience_duration} + Второй:{carrerSteps[step_two].experience_duration} -> {merged_duration} ({merged_interval})")
+                    # print(f"\tПервый: {carrerSteps[step_one].experience_duration} + Второй:{carrerSteps[step_two].experience_duration} -> {merged_duration} ({merged_interval})")
                     carrerSteps[step_one].experience_duration = merged_duration
 
     return data, duplicate_set
@@ -99,8 +99,8 @@ def remove_repeat_steps(log:logging, data:list[ResumeGroup], set_to_remove:set) 
 
 
 if __name__ == "__main__":
-    log = settings.start_logging("step_5.log", folder="")
-    data = settings.load_resumes_json(log=log, path=settings.STEP_4_JSON_FILE)
+    log = tools.start_logging("step_5.log", folder="")
+    data = tools.load_resumes_json(log=log, path=config.STEP_4_JSON_FILE)
     resumes, duplicate_set = join_steps(log=log, data=data)
     resumes_without_duplicate_steps = remove_repeat_steps(log=log, data=resumes, set_to_remove=duplicate_set)
-    settings.save_resumes_to_json(log=log, resumes=resumes_without_duplicate_steps, filename=settings.STEP_5_JSON_FILE)
+    tools.save_resumes_to_json(log=log, resumes=resumes_without_duplicate_steps, filename=config.STEP_5_JSON_FILE)

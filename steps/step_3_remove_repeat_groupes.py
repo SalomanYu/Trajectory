@@ -2,8 +2,8 @@
 """
 
 import logging
-import settings
-from settings import ResumeGroup
+import tools, config
+from config import ResumeGroup
 
 
 def filtering_groups(log:logging, data: list[ResumeGroup]) -> tuple[list[ResumeGroup], list[ResumeGroup.ID]]:
@@ -87,12 +87,12 @@ def remove_dublicates(log:logging, data:list[ResumeGroup], list_to_delete: list)
 
 
 if __name__ == "__main__":
-    log = settings.start_logging(logfile="step_3.log")
+    log = tools.start_logging(logfile="step_3.log")
 
     # data = settings.load_resumes_json(log, settings.STEP_2_JSON_FILE)
-    resumes = settings.load_resumes_json(log=log, filename=settings.STEP_2_JSON_FILE)
+    resumes = tools.load_resumes_json(log=log, filename=config.STEP_2_JSON_FILE)
     data, dublicate_list = filtering_groups(resumes)
     # retransled_dict = settings.nested_tuple_to_dict(nested_tuple=groups)
 
     data_without_dublicates = remove_dublicates(data=data, list_to_delete=dublicate_list)
-    settings.save_to_json(log, data_without_dublicates, settings.STEP_3_JSON_FILE)
+    tools.save_to_json(log, data_without_dublicates, settings.STEP_3_JSON_FILE)

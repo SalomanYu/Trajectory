@@ -15,7 +15,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
-from settings import * 
+from config import * 
+from tools import *
 
 import locale
 from datetime import datetime 

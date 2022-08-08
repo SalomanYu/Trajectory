@@ -3,8 +3,8 @@ import sqlite3
 import os
 import logging
 
-import settings
-from settings import Connection, ResumeProfessionItem, ResumeGroup, start_logging
+import tools, config
+from config import Connection, ResumeProfessionItem, ResumeGroup
 
 
 class SelectData:
@@ -18,7 +18,7 @@ class SelectData:
         """Основной метод, который запускает все остальные функции"""
         data = self.select_all_rows()
         groups = self.group_user_ids_to_dict(data)
-        settings.save_to_json(log=self.log, data=groups, filename=self.file_output_name)
+        tools.save_to_json(log=self.log, data=groups, filename=self.file_output_name)
         self.log.info("Complete!")
 
     def connect_to_db(self, path: str) -> Connection:
@@ -45,7 +45,7 @@ class SelectData:
         cur = self.connect_to_db(self.path).cursor
         cur.execute(f'SELECT * FROM {self.db_table}')
 
-        resumes = [dict(zip(settings.JSONFIELDS, resume)) for resume in cur.fetchall()]
+        resumes = [dict(zip(config.JSONFIELDS, resume)) for resume in cur.fetchall()]
  
         return resumes
         
@@ -69,7 +69,7 @@ class SelectData:
 
 
 if __name__ == "__main__":
-    log = start_logging(logfile="step_2.log")
+    log = tools.start_logging(logfile="step_2.log")
     collector = SelectData(
         db_path='/home/yunoshev/Documents/Edwica/Resumes/result_server/SQL/Professions(2022_6).dbcolle',
         file_output_name=settings.STEP_2_JSON_FILE,

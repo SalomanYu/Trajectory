@@ -6,6 +6,7 @@ import os
 import time
 import sqlite3
 import requests 
+import logging
 
 from bs4 import BeautifulSoup
 from datetime import date
@@ -15,9 +16,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 
-from settings import HH_VARIABLES, Experience, ResumeItem, Training, University, WorkExperience, CurrentSearchItem
-from settings import logging
-import settings
+from config import HH_VARIABLES, Experience, ResumeItem, Training, University, WorkExperience, CurrentSearchItem, Connection
+import tools
 
 
 class Resume:
@@ -337,7 +337,7 @@ class Resume:
             return Training(name='', direction='', year='')
 
     
-    def connect_to_db(self, db_name: str) -> settings.Connection:
+    def connect_to_db(self, db_name: str) -> Connection:
         """Метод подключения к существующей БД
         Принимает: название БД"""
        

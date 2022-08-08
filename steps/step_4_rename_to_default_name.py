@@ -6,8 +6,8 @@ import logging
 import xlrd 
 import ru_core_news_md
 
-import settings
-from settings import ResumeGroup, DBResumeProfession, DefaultLevelProfession, save_resumes_to_json
+import tools, config
+from config import ResumeGroup, DBResumeProfession, DefaultLevelProfession
 
 
 def get_default_names(profession_excelpath: str) -> tuple[set[DefaultLevelProfession], list]:
@@ -39,7 +39,7 @@ def get_default_names(profession_excelpath: str) -> tuple[set[DefaultLevelProfes
 
 def set_resume_names_to_default_values(log: logging):
     nlp = ru_core_news_md.load()
-    resumes = settings.load_resumes_json(log=log, path=settings.STEP_3_JSON_FILE)
+    resumes = tools.load_resumes_json(log=log, path=config.STEP_3_JSON_FILE)
     level_default_names, edwica_db_names = get_default_names(profession_excelpath="Professions/43 Маркетинг _ Реклама. _ PR.xlsx")
 
     for resume in resumes:
@@ -58,7 +58,7 @@ def set_resume_names_to_default_values(log: logging):
             step_doesnt_have_level = True
             for db_name in edwica_db_names:
                 if db_name.strip().lower() == step.experience_post.strip().lower():
-                    for key_level in settings.LEVEL_KEYWORDS:
+                    for key_level in config.LEVEL_KEYWORDS:
                         if key_level.key_words & set(step.experience_post.lower().split()):
                             for default_level, default_name in level_default_names:
                                 if default_level == key_level.level:
@@ -74,7 +74,7 @@ def set_resume_names_to_default_values(log: logging):
                 pass
                     
     
-    save_resumes_to_json(log=log, resumes=resumes, filename=settings.STEP_4_JSON_FILE)
+    tools.save_resumes_to_json(log=log, resumes=resumes, filename=config.STEP_4_JSON_FILE)
 
 
 if __name__ == "__main__":
