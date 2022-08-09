@@ -95,4 +95,4 @@ if __name__ == "__main__":
     # retransled_dict = settings.nested_tuple_to_dict(nested_tuple=groups)
 
     data_without_dublicates = remove_dublicates(data=data, list_to_delete=dublicate_list)
-    tools.save_to_json(log, data_without_dublicates, settings.STEP_3_JSON_FILE)
+    tools.save_to_json(log, data_without_dublicates, config.STEP_3_JSON_FILE)

@@ -23,27 +23,27 @@ DEFAULT_VALUES = { # Словарь стандартных значений дл
         4: 12*50, # Пoставил 50, потому что в промежуток для среднего опыта сеньора может быть от 5 и выше
     }
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True) # Класс используемый в заголовках парсера. Его применение можно увидеть в конце файла в константе HEADERS
 class RequiredUrls:
     category: str
     url: str
 
 @dataclass
-class DefaultExperience:
+class DefaultExperience: # Используется в кортеже "стандартных уровни стажа работы"
     level: int
     min_value: int
     max_value: int
 
-@dataclass
-class CriticalValue:
-    value: int
-    url_id: str
+# @dataclass
+# class CriticalValue:
+#     value: int
+#     url_id: str
 
-@dataclass
-class ExtremeCareerSteps: # экстремумы 
-    level: int
-    maximum: CriticalValue
-    minimum: CriticalValue
+# @dataclass
+# class ExtremeCareExtremeCareerStepserSteps: # экстремумы 
+#     level: int
+#     maximum: CriticalValue
+#     minimum: CriticalValue
 
 @dataclass
 class DBResumeProfession:
@@ -102,7 +102,7 @@ class ResumeProfessionItem(NamedTuple):
     dateUpdate: str
     url: str
 
-class ResumeItem(NamedTuple):
+class ResumeItem(NamedTuple): 
     name: str
     city: str
     general_experience: str
@@ -123,11 +123,11 @@ class ResumeItem(NamedTuple):
     experience_post: str
     url: str
 
-class ResumeGroup(NamedTuple):
-    ID: str # ССылка резюме
+class ResumeGroup(NamedTuple): # Класс, который хранит информацию о резюме в виде айди резюме и списка разложенных этапов в карьере
+    ID: str # Ссылка резюме
     ITEMS: tuple[ResumeProfessionItem]
 
-class Variables(NamedTuple):
+class Variables(NamedTuple): # HH
     name_db: str
     cities: set['str']
     parsing_urls: set[RequiredUrls]
@@ -140,52 +140,55 @@ class ExcelData(NamedTuple):
     weights_in_group: tuple
     levels: tuple
 
-class Training(NamedTuple):
+class Training(NamedTuple): # Класс, хранящий информацию о пройденном курсе соискателя 
     name: str
     direction: str
     year: int
 
-class University(NamedTuple):
+class University(NamedTuple): # Класс, хранящий информацию об образовании соискателя
     name: str
     direction: str
     year: int
 
-class WorkExperience(NamedTuple):
+class WorkExperience(NamedTuple): # Класс, хранящий информацию о каком либо этапе в карьере соискателя
     post: str # Product manager
     interval: str # Март 2017 — по настоящее время
     branch: str # Информационные технологии, системная интеграция, интернет
     subbranch: str # Разработка программного обеспечения
     duration: str # 5  лет 4 месяца
 
-class Experience(NamedTuple):
+class Experience(NamedTuple): # Класс, хранящий информацию об общем опыте соискателя: стаж и множество этапов в карьере 
     global_experience: str # Например: 8 лет и 5 месяцев
     work_places: set[WorkExperience]
 
-class Connection(NamedTuple):
+class Connection(NamedTuple): # Класс подключения к Базе данных
     cursor: sqlite3.Cursor
     db: sqlite3.Connection
 
-class CurrentSearchItem(NamedTuple):
-    url: str
-    dateUpdate: str
+class CurrentSearchItem(NamedTuple): # С помощью этого класса мы имеем возможность парсить полную информацию о резюме
+    url: str # ссылка на подробное описание резюме
+    dateUpdate: str # дата обновления - она находится здесь, потому что этой информаии нет на странице резюме. Мы можем брать ее только из поисковой выдачи hh.ru
 
-class DefaultLevelProfession(NamedTuple):
+class DefaultLevelProfession(NamedTuple): # Класс, позволяющий присвоить дефолтное наименование профессии для профессии с одинаковым ID и уровнем 
+    profID: int
     level: int
     name: str
 
-
-class LevelKeyWords(NamedTuple):
+class LevelKeyWords(NamedTuple): # Класс, для хранения ключевых слов, определяющих уровень должности в карьере соискателя 
     level: int
     key_words: set
 
-
+# Данная константа помогает определить уровень должности по текущему на тот момент стажу. 
+# Используется, когда у нас недостаточно данных для автоматического определения уровня 
+# Измерения производятся в месяцах 
 DEFAULT_LEVEL_EXPERIENCE = (
     DefaultExperience(level=1, min_value=0, max_value=5),
     DefaultExperience(level=2, min_value=6, max_value=36),
     DefaultExperience(level=3, min_value=37, max_value=60),
-    DefaultExperience(level=4, min_value=61, max_value=999))
+    DefaultExperience(level=4, min_value=61, max_value=999) # 999 заменяет выражение 'от 61 месяца и выше'
+    ) 
 
-
+# Кортеж с ключевыми словами для каждого уровня
 LEVEL_KEYWORDS = (
     LevelKeyWords(level=1, key_words={'помощник', 'ассистент', 'стажёр', 'стажер', 'assistant', 'intern', 'интерн', 'волонтер', 'волонтёр'}),
     LevelKeyWords(level=2, key_words={'junior', 'младший', 'начинать'}), # начинающий заменен на начинать с учетом лемматизации
@@ -193,6 +196,7 @@ LEVEL_KEYWORDS = (
     LevelKeyWords(level=4, key_words={'senior', 'руководитель', 'head of', 'портфель', 'team lead', 'управлять', 'начальник', 'директор', 'head'})
     )
     
+# Кортеж для объединения значений из БД с их заголовками. Используется для того
 JSONFIELDS = (
     'id', 'weight_in_group', 'level', 'level_in_group', "area", 'name_of_profession', 'city', 'general_experience', 'specialization', 'salary', 
     'higher_education_university', 'higher_education_direction', 'higher_education_year', 'languages', 'skills', 'advanced_training_name', 'advanced_training_direction',

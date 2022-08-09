@@ -4,10 +4,9 @@
 
 import logging
 import xlrd 
-import ru_core_news_md
 
 import tools, config
-from config import ResumeGroup, DBResumeProfession, DefaultLevelProfession
+from config import  DefaultLevelProfession
 
 
 def get_default_names(profession_excelpath: str) -> tuple[set[DefaultLevelProfession], list]:
@@ -16,29 +15,42 @@ def get_default_names(profession_excelpath: str) -> tuple[set[DefaultLevelProfes
     table_titles = work_sheet.row_values(0)
 
     for col_num in range(len(table_titles)):
-        if table_titles[col_num] == 'Наименование професии и различные написания':
-            table_names_col = col_num
-        
-        elif table_titles[col_num] == 'Вес профессии в уровне':
-            table_weight_in_level_col = col_num # 25 Включительно
-        elif table_titles[col_num] == 'Уровень должности':
-            table_level_col = col_num
-        elif table_titles[col_num] == 'Вес профессии в соответсвии':
-            table_weight_in_group = col_num
+        match table_titles[col_num]:
+            case "Наименование професии и различные написания":
+                table_names_col = col_num
+            case "Вес профессии в уровне":
+                table_weight_in_level_col = col_num
+            case "Уровень должности":
+                table_level_col = col_num
+            case "Вес профессии в соответсвии":
+                table_weight_in_group = col_num
+            case "ID список профессий":
+                table_groupID_col = col_num
     
     names = [item for item in work_sheet.col_values(table_names_col) if item != '']
     default_names = set()
 
-    for row_num in range(work_sheet.nrows): # Выбираем только менеджеров 
-        if (work_sheet.cell(row_num, table_weight_in_level_col).value == 0) and (work_sheet.cell(row_num, table_weight_in_group).value == 1):
-            default_names.add(DefaultLevelProfession(name=work_sheet.cell(row_num, table_names_col).value, level=int(work_sheet.cell(row_num, table_level_col).value)))
-        elif work_sheet.cell(row_num, table_weight_in_level_col).value == 1:
-            default_names.add(DefaultLevelProfession(name=work_sheet.cell(row_num, table_names_col).value, level=int(work_sheet.cell(row_num, table_level_col).value)))
+    for row_num in range(work_sheet.nrows):
+        # Это условие фильтрует профессии по 'Id список профессий'
+        # Если кортежа с содержимым (айди профессии, уровень профессии) нет в таком же кортеже дефолтных значений, то добавляем профессию
+        if (work_sheet.cell(row_num, table_groupID_col), work_sheet.cell(row_num, table_level_col) not in 
+            ((default.profID, default.level) for default in default_names)):
+
+            if (work_sheet.cell(row_num, table_weight_in_level_col).value == 0) and (work_sheet.cell(row_num, table_weight_in_group).value == 1):
+                default_names.add(DefaultLevelProfession(
+                    profID=int(work_sheet.cell(row_num, table_groupID_col).value), 
+                    name=work_sheet.cell(row_num, table_names_col).value, 
+                    level=int(work_sheet.cell(row_num, table_level_col).value)))
+            
+            elif work_sheet.cell(row_num, table_weight_in_level_col).value == 1:
+                default_names.add(DefaultLevelProfession(
+                    profID=int(work_sheet.cell(row_num, table_groupID_col).value), 
+                    name=work_sheet.cell(row_num, table_names_col).value, 
+                    level=int(work_sheet.cell(row_num, table_level_col).value)))
         
     return default_names, names
 
 def set_resume_names_to_default_values(log: logging):
-    nlp = ru_core_news_md.load()
     resumes = tools.load_resumes_json(log=log, path=config.STEP_3_JSON_FILE)
     level_default_names, edwica_db_names = get_default_names(profession_excelpath="Professions/43 Маркетинг _ Реклама. _ PR.xlsx")
 
@@ -78,7 +90,5 @@ def set_resume_names_to_default_values(log: logging):
 
 
 if __name__ == "__main__":
-    log = settings.start_logging("step_4.log")
-    set_resume_names_to_default_values(log)
-
-         
+    log = tools.start_logging("step_4.log")
+    set_resume_names_to_default_values(log)         

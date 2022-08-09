@@ -38,7 +38,7 @@ class Trajectory:
                 profession_weight_in_level=excel_data.weights_in_level[item]
             )
             profession.find()
-            print("Step 1 finished!")
+        print("Step 1 finished!")
 
     def collect_data_from_sql_to_json(self) -> None:
         log = tools.start_logging(logfile="step_2.log", folder=self.logging_dir)
@@ -97,13 +97,14 @@ class Trajectory:
 def create_trajectory(professions_path: str):
     tablename = professions_path.replace(" ", '_').replace('.xlsx', '')
     trajectory = Trajectory(professions_db=os.path.join(config.PROFESSIONS_FOLDER_PATH, professions_path), db_tablename=tablename, logging_dir=ex_file.replace(".xlsx", ''))
-    trajectory.parse_current_profession()
+    # trajectory.parse_current_profession()
     # trajectory.collect_data_from_sql_to_json()
     # trajectory.remove_repeat_groupes()
-    # trajectory.rename_to_default_names()
+    trajectory.rename_to_default_names()
     # trajectory.join_reset_steps()
     # trajectory.detect_profession_experience_time()
     # trajectory.step_7()
+
 
 if __name__ == "__main__":
     console = Console()

@@ -18,8 +18,6 @@ from selenium.webdriver.common.keys import Keys
 from config import * 
 from tools import *
 
-import locale
-from datetime import datetime 
 
 
 class ProfessionParser(Resume):

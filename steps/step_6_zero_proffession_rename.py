@@ -1,10 +1,8 @@
-from dataclasses import dataclass
 import logging
 import tools, config
 from config import ResumeGroup, DefaultLevelProfession
 
 
- # 999 заменяет выражение от 61 месяца и выше
 
 def get_average_duration(resumes: list[ResumeGroup]):
     INTERN_STATISTICS = set()
@@ -15,42 +13,42 @@ def get_average_duration(resumes: list[ResumeGroup]):
     for item in resumes:        
         resume = item.ITEMS[0]
         if resume.level == 1:
-            INTERN_STATISTICS.add(settings.experience_to_months(resume.general_experience))
+            INTERN_STATISTICS.add(tools.experience_to_months(resume.general_experience))
             for step in item.ITEMS:
-                for level_worlds in settings.LEVEL_KEYWORDS:
+                for level_worlds in tools.LEVEL_KEYWORDS:
                     if level_worlds.key_words & set(step.experience_post.split()) and level_worlds.level == 1:
-                        INTERN_STATISTICS.add(settings.experience_to_months(step.experience_duration))
+                        INTERN_STATISTICS.add(tools.experience_to_months(step.experience_duration))
         elif resume.level == 2:
-            JUNIOR_STATISTICS.add(settings.experience_to_months(resume.general_experience))
+            JUNIOR_STATISTICS.add(tools.experience_to_months(resume.general_experience))
             for step in item.ITEMS:
-                for level_worlds in settings.LEVEL_KEYWORDS:
+                for level_worlds in tools.LEVEL_KEYWORDS:
                     if level_worlds.key_words & set(step.experience_post.split()) and level_worlds.level == 2:
-                        JUNIOR_STATISTICS.add(settings.experience_to_months(step.experience_duration))
+                        JUNIOR_STATISTICS.add(tools.experience_to_months(step.experience_duration))
         elif resume.level == 3:
-            MIDDLE_STATISTICS.add(settings.experience_to_months(resume.general_experience))
+            MIDDLE_STATISTICS.add(tools.experience_to_months(resume.general_experience))
             for step in item.ITEMS:
-                for level_worlds in settings.LEVEL_KEYWORDS:
+                for level_worlds in tools.LEVEL_KEYWORDS:
                     if level_worlds.key_words & set(step.experience_post.split()) and level_worlds.level == 3:
-                        MIDDLE_STATISTICS.add(settings.experience_to_months(step.experience_duration))
+                        MIDDLE_STATISTICS.add(tools.experience_to_months(step.experience_duration))
         elif resume.level == 4:
-            SENIOR_STATISTICS.add(settings.experience_to_months(resume.general_experience))
+            SENIOR_STATISTICS.add(tools.experience_to_months(resume.general_experience))
             for step in item.ITEMS:
-                for level_worlds in settings.LEVEL_KEYWORDS:
+                for level_worlds in tools.LEVEL_KEYWORDS:
                     if level_worlds.key_words & set(step.experience_post.split()) and level_worlds.level == 4:
-                        SENIOR_STATISTICS.add(settings.experience_to_months(step.experience_duration))
+                        SENIOR_STATISTICS.add(tools.experience_to_months(step.experience_duration))
 
     
     print(f"{INTERN_STATISTICS=}\t{JUNIOR_STATISTICS=}\t{MIDDLE_STATISTICS=}\t{SENIOR_STATISTICS=}")
-    average_intern = settings.get_default_average_value(statistic=INTERN_STATISTICS, level=1)
-    average_junior = settings.get_default_average_value(statistic=JUNIOR_STATISTICS, level=2)
-    average_middle = settings.get_default_average_value(statistic=MIDDLE_STATISTICS, level=3)
-    average_senior = settings.get_default_average_value(statistic=SENIOR_STATISTICS, level=4)
+    average_intern = tools.get_default_average_value(statistic=INTERN_STATISTICS, level=1)
+    average_junior = tools.get_default_average_value(statistic=JUNIOR_STATISTICS, level=2)
+    average_middle = tools.get_default_average_value(statistic=MIDDLE_STATISTICS, level=3)
+    average_senior = tools.get_default_average_value(statistic=SENIOR_STATISTICS, level=4)
 
     return average_intern,  average_junior, average_middle, average_senior
 
 def rename_zero_professions_by_experience(log:logging, resumes: list[ResumeGroup], default_names:set[DefaultLevelProfession], edwica_db_names:list):
-    # log = settings.start_logging("step_test.log")
-    # resumes = settings.load_resumes_json(log=log, path=settings.STEP_5_JSON_FILE)
+    # log = tools.start_logging("step_test.log")
+    # resumes = tools.load_resumes_json(log=log, path=tools.STEP_5_JSON_FILE)
 
     # default_names, edwica_db_names = get_default_names(profession_excelpath="Professions/43 Маркетинг _ Реклама. _ PR.xlsx")
 

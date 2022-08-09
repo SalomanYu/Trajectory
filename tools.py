@@ -63,14 +63,12 @@ def connect_to_excel(path:str) -> ExcelData:
         match table_titles[col_num]:
             case 'Наименование професии и различные написания':
                 table_names = [name for name in work_sheet.col_values(col_num)[1:] if name != '']
-            # case 'Профобласть':
-                # table_area = work_sheet.col_values(col_num)[1]
             case 'Вес профессии в уровне':
-                table_weight_in_level = [weight for weight in work_sheet.col_values(col_num)[1:] if weight != ''] # 25 Включительно
+                table_weight_in_level = [int(weight) for weight in work_sheet.col_values(col_num)[1:] if weight != '']
             case 'Вес профессии в соответсвии':
-                table_weight_in_group = [weight for weight in work_sheet.col_values(col_num)[1:] if weight != '']
+                table_weight_in_group = [int(weight) for weight in work_sheet.col_values(col_num)[1:] if weight != '']
             case 'Уровень должности':
-                table_level = [level for level in work_sheet.col_values(col_num)[1:] if level != '']
+                table_level = [int(level) for level in work_sheet.col_values(col_num)[1:] if level != '']
     return ExcelData(table_names, profession_area, table_weight_in_level, table_weight_in_group, table_level)
 
 def get_default_average_value(statistic:set, level:int) -> int:
@@ -97,3 +95,8 @@ def experience_to_months(experience: str) -> int:
         return years * 12 + months
     else:
         return months
+
+
+if __name__ == "__main__":
+    print(connect_to_excel(path='/home/saloman/Documents/Edwica/Trajectory/Professions/23 Управление персоналом.xlsx'))
+    
