@@ -4,10 +4,11 @@
 
 import logging
 import xlrd 
-
+from fuzzywuzzy import fuzz
 import tools, config
 from config import  DefaultLevelProfession
 
+from rich.progress import track
 
 def get_default_names(profession_excelpath: str) -> tuple[set[DefaultLevelProfession], list]:
     book_reader = xlrd.open_workbook(profession_excelpath)
@@ -50,38 +51,42 @@ def get_default_names(profession_excelpath: str) -> tuple[set[DefaultLevelProfes
         
     return default_names, names
 
-def set_resume_names_to_default_values(log: logging):
+def set_resume_names_to_default_values(log: logging, path: str):
     resumes = tools.load_resumes_json(log=log, path=config.STEP_3_JSON_FILE)
-    level_default_names, edwica_db_names = get_default_names(profession_excelpath="Professions/43 Маркетинг _ Реклама. _ PR.xlsx")
-
-    for resume in resumes:
+    level_default_names, edwica_db_names = get_default_names(profession_excelpath=path)
+    for item in track(range(len(resumes)), description="[blue]Приведение наименований должностей и профессии к стандартным значениям"):
+        resume = resumes[item]
         job_steps = resume.ITEMS
+        name_resume_has_changed= False
         resume_level = job_steps[0].level
+        resume_groupID = job_steps[0].groupID
         for default in level_default_names:
-            default_level, default_name = default
-            if resume_level == default_level:
-                for db_name in edwica_db_names:
-                    if db_name.strip().lower() in job_steps[0].name.strip().lower():
-                        log.info("[ID: %d] Поменяли наименование РЕЗЮМЕ: %s -> %s", job_steps[0].db_id , job_steps[0].name, default_name)
-                        for item in job_steps: item.name = default_name # меняем наименование профессии везде
+            if name_resume_has_changed: break
+            if resume_level == default.level and default.profID == resume_groupID:
+                name_resume_has_changed = True
+                log.info("[ID: %d] Поменяли наименование РЕЗЮМЕ: %s -> %s", job_steps[0].db_id , job_steps[0].name, default.name)
+                for item in job_steps: item.name = default.name # меняем наименование профессии везде
                     
         for step in job_steps:
             name_step_has_changed = False
             step_doesnt_have_level = True
             for db_name in edwica_db_names:
+                if name_step_has_changed: break
                 if db_name.strip().lower() == step.experience_post.strip().lower():
                     for key_level in config.LEVEL_KEYWORDS:
                         if key_level.key_words & set(step.experience_post.lower().split()):
-                            for default_level, default_name in level_default_names:
-                                if default_level == key_level.level:
+                            for defID, default_level, default_name in level_default_names:
+                                if default_level == key_level.level and not name_step_has_changed and defID == step.groupID:
                                     step_doesnt_have_level = False
-                                    log.info("[%d]Поменяли ДОЛЖНОСТЬ: %s -> %s",step.db_id, step.experience_post, default_name)
+                                    log.info("[%d]Поменяли ДОЛЖНОСТЬ[%d - %d]: %s -> %s",step.db_id, step.groupID, defID, step.experience_post, default_name)
                                     name_step_has_changed = True
                     # Если должность встречается в базе, но мы не смогли определить ее уровень, то присваеваем ей дефолное наименование нулевого уровня
-                    if step_doesnt_have_level:
-                        step.experience_post = [default.name for default in level_default_names if default.level == 0][0]
-                        log.info("[%d]Поменяли НУЛЕВУЮ ДОЛЖНОСТЬ: %s -> %s",step.db_id, step.experience_post, [default.name for default in level_default_names if default.level == 0][0])
-                        name_step_has_changed = True
+                    if step_doesnt_have_level and not name_step_has_changed:
+                        for default in level_default_names:
+                            if fuzz.WRatio(s1=default.name, s2=step.experience_post) >= 90 and default.level == 0:
+                                log.info("[%d]Поменяли НУЛЕВУЮ ДОЛЖНОСТЬ[%d - %d]: %s -> %s", step.db_id, step.groupID, default.profID, step.experience_post, default.name)
+                                step.experience_post = default.name
+                                name_step_has_changed = True
             if not name_step_has_changed: # Если мы не смогли заменить должность на дефолтное наименование этой сферы, то попробуем найти такую дефолтное значение в других профессиях
                 pass
                     
