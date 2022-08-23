@@ -16,7 +16,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 
-from config import HH_VARIABLES, Experience, ResumeItem, Training, University, WorkExperience, CurrentSearchItem, Connection
+from config import HH_VARIABLES, Experience,  Training, University, WorkExperience, CurrentSearchItem, Connection  # ,ResumeItem
 import tools
 
 
@@ -96,7 +96,7 @@ class Resume:
             logging.error('Failed to parse resume. Problem: %s. Resume url - %s', error, url)
             return []
 
-    def collect_all_resume_info(self, soup: BeautifulSoup, url: str) -> ResumeItem | list[ResumeItem]:
+    def collect_all_resume_info(self, soup: BeautifulSoup, url: str) :#-> ResumeItem | list[ResumeItem]:
         """Метод собирает все методы парсера в один массив данных"""
 
         experience, work_periods  = self.get_experience(soup, url)        
@@ -111,21 +111,21 @@ class Resume:
                 
         if len(work_periods) > 0:
             res = []
-            for work in work_periods: # Пробегаемся по количеству мест работы 
-                res.append(ResumeItem(name=title, city=self.city, 
-                                general_experience=experience, specialization=specializations, salary=self.salary,
-                                university_name=univer.name, university_direction=univer.direction, university_year=univer.year,
-                                languages=languages, skills=key_skills, training_name=training.name, training_direction=training.direction,
-                                training_year=training.year, branch=work.branch, subbranch=work.subbranch, experience_interval=work.interval,
-                                experience_duration=work.duration, experience_post=work.post, url=url))
+            # for work in work_periods: # Пробегаемся по количеству мест работы 
+                # res.append(ResumeItem(name=title, city=self.city, 
+                                # general_experience=experience, specialization=specializations, salary=self.salary,
+                                # university_name=univer.name, university_direction=univer.direction, university_year=univer.year,
+                                # languages=languages, skills=key_skills, training_name=training.name, training_direction=training.direction,
+                                # training_year=training.year, branch=work.branch, subbranch=work.subbranch, experience_interval=work.interval,
+                                # experience_duration=work.duration, experience_post=work.post, url=url))
             return res 
-        else: # Вариант, когда нет опыта работы
-            return  ResumeItem(name=title, city=self.city, 
-                                general_experience=experience, specialization=specializations, salary=self.salary,
-                                university_name=univer.name, university_direction=univer.direction, university_year=univer.year,
-                                languages=languages, skills=key_skills, training_name=training.name, training_direction=training.direction,
-                                training_year=training.year, branch='', subbranch='', experience_interval='', experience_duration='', 
-                                experience_post='', url=url)
+        # else: # Вариант, когда нет опыта работы
+            # return  ResumeItem(name=title, city=self.city, 
+                                # general_experience=experience, specialization=specializations, salary=self.salary,
+                                # university_name=univer.name, university_direction=univer.direction, university_year=univer.year,
+                                # languages=languages, skills=key_skills, training_name=training.name, training_direction=training.direction,
+                                # training_year=training.year, branch='', subbranch='', experience_interval='', experience_duration='', 
+                                # experience_post='', url=url)
 
 
     def get_title(self, soup: BeautifulSoup) -> str:
@@ -385,7 +385,7 @@ class Resume:
         db.commit()
         db.close()
 
-    def add_to_table(self, name:str, data:ResumeItem | list[ResumeItem], many_rows: bool=False) -> None:
+    def add_to_table(self, name:str, data: list, many_rows: bool=False) -> None: #data:ResumeItem | list[ResumeItem]
         """Метод умеет добавлять в БД как и одну строку, так и несколько строк сразу
         Отличия в том, что резюме с несколькими строками означает, что в резюме
         указано несколько мест работы и для удобства их нужно разместить на разных строках"""

@@ -21,7 +21,7 @@ def start_logging(logfile: str="logfile.log", folder:str="undetinfied") -> loggi
     logging.getLogger('selenium').setLevel(logging.WARNING)
     return logging
 
-def load_resumes_json(log:logging, path:str) -> list[ResumeGroup]:
+def load_resumes_json(log:logging, path:str, is_seven_step:bool = False) -> list[ResumeGroup]:
     """Метод будет собирает данные из json-файлов и будет их выдавать
     в удобном виде списка с элементами представляющими тип данных ResumeGroup"""
     File = open(path)
@@ -29,17 +29,31 @@ def load_resumes_json(log:logging, path:str) -> list[ResumeGroup]:
     File.close()
 
     log.info(f"Took json-data from {path}")
-    resumes = [ResumeGroup(ID=key, ITEMS=[DBResumeProfession(*resume.values()) for resume in value]) for key, value in data.items()]
+
+    if is_seven_step:
+        resumes = []
+        for key, value in data.items():
+            items = [ProfessionWithSimilarResumes(resume=DBResumeProfession(*tuple(resume.values())[:-1]), similar_id=tuple(resume.values())[-1]) for resume in value]
+            resumes.append(ResumeGroup(ID=key, ITEMS=items))
+    else: resumes = [ResumeGroup(ID=key, ITEMS=[DBResumeProfession(*resume.values()) for resume in value]) for key, value in data.items()]
     return resumes
 
-def save_resumes_to_json(log: logging, resumes:list[ResumeGroup], filename: str) -> None:
+def save_resumes_to_json(log: logging, resumes:list[ResumeGroup] | list[ProfessionWithSimilarResumes], filename: str, is_seven_step: bool = False) -> None:
     os.makedirs('JSON', exist_ok=True)
     """Метод, сохраняющий список элементов типа ResumeGroup"""
     res = {}
-    for resume in resumes:
-        res[resume.ID] = []
-        for item in resume.ITEMS:
-            res[resume.ID].append(dict(zip(JSONFIELDS, [*item])))
+    if is_seven_step:
+        for item in resumes:
+            res[item.resume.ID] = []
+            for elem in item.resume.ITEMS:
+                res[item.resume.ID].append(dict(zip(JSONFIELDS + ["similar_path_ID"], [*elem]+[item.similar_id]))) # если мы на этапе объединения похожих путей, то добавляем еще одну графу
+    
+    else:
+        for resume in resumes:
+            res[resume.ID] = []
+            for item in resume.ITEMS:
+                res[resume.ID].append(dict(zip(JSONFIELDS, [*item])))
+    
     with open(filename, "w") as f:
         json.dump(res, f, ensure_ascii=False, indent=2)
     log.info("%s saved to JSON!", filename)
@@ -70,6 +84,37 @@ def connect_to_excel(path:str) -> ExcelData:
             case 'Уровень должности':
                 table_level = [int(level) for level in work_sheet.col_values(col_num)[1:] if level != '']
     return ExcelData(table_names, profession_area, table_weight_in_level, table_weight_in_group, table_level)
+
+def connect_to_excel_222(path:str) -> ExcelProfession:
+    """Метод возвращает список профессий определенных одним profession_ID"""
+    profession_area = re.sub("\d+", '', path).split('/')[-1].split(".xlsx")[0].strip().replace(" ", '_')
+    book_reader = xlrd.open_workbook(path)
+    work_sheet = book_reader.sheet_by_name('Вариации названий')
+    table_titles = work_sheet.row_values(0)
+    
+    for col_num in range(len(table_titles)):
+        match table_titles[col_num]:
+            case 'Наименование професии и различные написания':
+                names_col = col_num
+            case 'Вес профессии в уровне':
+                weight_in_level_col = col_num
+            case 'Вес профессии в соответсвии':
+                weight_in_group_col = col_num
+            case 'Уровень должности':
+                level_col = col_num
+            case "ID список профессий": 
+                groupID_col = col_num    
+    data = []
+    for row in range(1, work_sheet.nrows):
+        data.append(ExcelProfession(
+            groupID=int(work_sheet.cell(row, groupID_col).value),
+            name=work_sheet.cell(row, names_col).value,
+            area=profession_area,
+            level=int(work_sheet.cell(row, level_col).value),
+            weight_in_group=int(work_sheet.cell(row, weight_in_group_col).value),
+            weight_in_level=int(work_sheet.cell(row, weight_in_level_col).value)
+        ))
+    return data
 
 def get_default_average_value(statistic:set, level:int) -> int:
     if statistic and sum(statistic) > 0: return round(sum(statistic) / len(statistic))
