@@ -154,24 +154,29 @@ def experience_to_months(experience: str) -> int:
 
 
 def find_profession_in_proffessions_db(profession_name: str) -> str | None:
+    print("1:", profession_name)
     for File in os.listdir(PROFESSIONS_FOLDER_PATH):
         if File.endswith(".xlsx"):
             professions = connect_to_excel_222(os.path.join(PROFESSIONS_FOLDER_PATH, File))
             if professions: 
                 for prof in professions:
                     if prof.name.lower() == profession_name.lower().strip():
-                        current_prof = find_default_name_for_profession(proff_dbPath=os.path.join(PROFESSIONS_FOLDER_PATH, File), level=prof.level)
+                        current_prof = find_default_name_for_profession(proff_dbPath=os.path.join(PROFESSIONS_FOLDER_PATH, File), level=prof.level, profID=prof.groupID)
                         return current_prof.name
 
     add_profession_to_unknownDB(profession=profession_name)
 
 
-def find_default_name_for_profession(proff_dbPath: str, level: int): # profID: int,
-    # print(profID, level, proff_dbPath)
+def find_default_name_for_profession(proff_dbPath: str, level: int, profID: int): # profID: int,
     professions = connect_to_excel_222(proff_dbPath)
     if professions:
         for prof in professions:
-            if  level == prof.level and prof.weight_in_level == 1: #prof.groupID == profID and
+            if  level == prof.level and prof.weight_in_level == 1 and prof.groupID == profID :
+                return prof
+    
+        # Если 
+        for prof in professions:
+            if  level == prof.level  and prof.groupID == profID :
                 return prof
     print("Ничего не найдено")
 
@@ -288,6 +293,8 @@ def get_default_names(profession_excelpath: str) -> tuple[set[DefaultLevelProfes
 
 if __name__ == "__main__":
     # print(connect_to_excel(path='/home/saloman/Documents/Edwica/Trajectory/Professions/23 Управление персоналом.xlsx'))
-    names = {"hr-специалист","hello", "world", "find", "me"}
-    for i in names:
-        find_profession_in_proffessions_db(i)
+    # names = {"hr-специалист","hello", "world", "find", "me"}
+    # for i in names:
+        # find_profession_in_proffessions_db(i)
+    
+    print(find_profession_in_proffessions_db("Консультант по подбору персонала"))
