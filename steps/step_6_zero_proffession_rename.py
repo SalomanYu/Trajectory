@@ -101,24 +101,24 @@ def rename_zero_professions_by_experience(log:logging, resumes: list[ResumeGroup
         
         previos_current_profession = True # проверяем был ли предыдущий этап в карьере правильным, то есть соответствующим искомой профессии
         job_steps = resume.ITEMS
-        if job_steps[0].level == 0:
-            global_experience = tools.experience_to_months(job_steps[0].general_experience)
-            for prof_statistic in profession_default_values:
-                if prof_statistic.prof_id == job_steps[0].groupID:
-                    for statistic_level in prof_statistic.levels:
-                        if global_experience >= statistic_level.value:
-                            try:  # ВАЖНО
-                                # Бывает такое, что у некоторых групп с профессиями нет определенного уровня и чтобы у нас не вылетала ошибка из-за того, что опыт соответствует определенному уровню
-                                # которого нет в конкретной группе с профессиями, то мы вызываем исключение и присваем ему значения из ПЕРВОЙ группы с профессиями 
-                                current_name = [i.name for i in default_names if i.level == statistic_level.level and i.profID == prof_statistic.prof_id][0] 
-                                log.info("[id:%d/Ex:%d/group:%d] Повысили нулевую профессию до %s уровня %s -> %s", job_steps[0].db_id,global_experience,prof_statistic.prof_id, statistic_level.name.upper(), job_steps[0].name, current_name)
-                           
-                            except IndexError: 
-                                current_name = [i.name for i in default_names if i.level == statistic_level.level][0]
-                                log.info("[BR-id:%d/Ex:%d/group:%d] Повысили нулевую профессию до %s уровня %s -> %s", job_steps[0].db_id,global_experience,prof_statistic.prof_id, statistic_level.name.upper(), job_steps[0].name, current_name)
+        # if job_steps[0].level == 0:
+        global_experience = tools.experience_to_months(job_steps[0].general_experience)
+        for prof_statistic in profession_default_values:
+            if prof_statistic.prof_id == job_steps[0].groupID:
+                for statistic_level in prof_statistic.levels:
+                    if global_experience >= statistic_level.value:
+                        try:  # ВАЖНО
+                            # Бывает такое, что у некоторых групп с профессиями нет определенного уровня и чтобы у нас не вылетала ошибка из-за того, что опыт соответствует определенному уровню
+                            # которого нет в конкретной группе с профессиями, то мы вызываем исключение и присваем ему значения из ПЕРВОЙ группы с профессиями 
+                            current_name = [i.name for i in default_names if i.level == statistic_level.level and i.profID == prof_statistic.prof_id][0] 
+                            log.info("[id:%d/Ex:%d/group:%d] Повысили нулевую профессию до %s уровня %s -> %s", job_steps[0].db_id,global_experience,prof_statistic.prof_id, statistic_level.name.upper(), job_steps[0].name, current_name)
+                        
+                        except IndexError: 
+                            current_name = [i.name for i in default_names if i.level == statistic_level.level][0]
+                            log.info("[BR-id:%d/Ex:%d/group:%d] Повысили нулевую профессию до %s уровня %s -> %s", job_steps[0].db_id,global_experience,prof_statistic.prof_id, statistic_level.name.upper(), job_steps[0].name, current_name)
 
-                            for step in job_steps: step.name = current_name
-                            for step in job_steps: step.level = statistic_level.level
+                        for step in job_steps: step.name = current_name
+                        for step in job_steps: step.level = statistic_level.level
         
         for step_count, step in enumerate(job_steps[::-1]):
             step_has_changed = False

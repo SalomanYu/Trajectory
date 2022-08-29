@@ -4,6 +4,7 @@
 import logging
 import tools, config
 from config import ResumeGroup
+from rich.progress import track
 
 
 def filtering_groups(log:logging, data: list[ResumeGroup]) -> tuple[list[ResumeGroup], list[ResumeGroup.ID]]:
@@ -21,7 +22,7 @@ def filtering_groups(log:logging, data: list[ResumeGroup]) -> tuple[list[ResumeG
     dublicate_list = [] # Инициализация переменной, которая будет хранить дубликаты
 
     log.info("Start cicle finding duplicates")
-    for current_index in range(len(data)):
+    for current_index in track(range(len(data)), description='[blue]Фильтруем резюме'):
         # В основе сравнения лежит метод - один ко многим. То есть берем по порядку группу и сраниваем ее со всеми остальными
         currentResume = data[current_index].ITEMS[0] # Выделяем первый этап карьеры, чтобы удобнее было работать с общими для всех этапов данными (стаж, наименование резюме, ЗП, скиллы и тд)
         currentJobStepsCount = len(data[current_index].ITEMS)
@@ -92,7 +93,6 @@ if __name__ == "__main__":
     # data = settings.load_resumes_json(log, settings.STEP_2_JSON_FILE)
     resumes = tools.load_resumes_json(log=log, filename=config.STEP_2_JSON_FILE)
     data, dublicate_list = filtering_groups(resumes)
-    # retransled_dict = settings.nested_tuple_to_dict(nested_tuple=groups)
 
     data_without_dublicates = remove_dublicates(data=data, list_to_delete=dublicate_list)
     tools.save_to_json(log, data_without_dublicates, config.STEP_3_JSON_FILE)

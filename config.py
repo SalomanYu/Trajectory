@@ -1,9 +1,11 @@
 """Данный файл является конфигурационным для траектории. Суть его в том, что здесь собраны все константы траектории и часто используемые функции"""
 
 from datetime import date
+import sqlite3
+
+from enum import Enum
 from typing import NamedTuple
 from dataclasses import dataclass, astuple
-import sqlite3
 
 
 STEP_2_JSON_FILE = "JSON/step_2_groups_result.json"
@@ -13,9 +15,10 @@ STEP_5_JSON_FILE = "JSON/step_5_groups_without_job_steps_duplicate.json"
 STEP_6_JSON_FILE = "JSON/step_6_update_zero_levels.json"
 STEP_7_JSON_FILE = "JSON/step_7_join_similar_path_by_similar_id.json"
 
-DATABASE_NAME = 'TrajectoryProfessions.db'
-PROFESSIONS_FOLDER_PATH = "Professions" 
+PROFESSIONS_FOLDER_PATH = "Professions"
+UNKNOWN_PROFESSIONS_PATH = "UnknownProfession.db" 
 CURRENT_MONTH = f"{date.today().month}.{date.today().year}" # для истории создается папка с текущей датой
+CURRENT_DATABASE_NAME = f"SQL/{CURRENT_MONTH}/TrajectoryProfessions.db"
 
 DEFAULT_VALUES = { # Словарь стандартных значений для определения опыта в месяцах конкретного уровня [Уровень: значение в месяцах]
         1: 5,
@@ -186,6 +189,14 @@ class ConnectionBetweenSteps(NamedTuple):
     job_title: str
     links: tuple[int]
 
+class DatabaseTable(Enum):
+    STEP_2 = "Управление_персоналом"
+    STEP_3 = "NoneRepeatResumeDuplicates"
+    STEP_4 = "ResumesByDefaultNames"
+    STEP_5 = "ResumesWithoutStepsDuplicate"
+    STEP_6 = "UpdateProfessionsWithZeroLevel"
+    STEP_7 = "JoinSimilarWorkWaysBySimilarID"
+
 # Данная константа помогает определить уровень должности по текущему на тот момент стажу. 
 # Используется, когда у нас недостаточно данных для автоматического определения уровня 
 # Измерения производятся в месяцах 
@@ -235,3 +246,11 @@ HH_VARIABLES = Variables(
         RequiredUrls(category='Another', url='/search/resume?professional_role=40&relocation=living_or_relocation&gender=unknown&search_period=0')
     ),
     headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.60 Safari/537.36'})
+
+
+adding_to_db_template = lambda tablename: f"""INSERT INTO {tablename} 
+    (id, weight_in_group, level, level_in_group, area, name_of_profession, city, general_experience, specialization, salary, 
+    higher_education_university, higher_education_direction, higher_education_year, languages, skills, advanced_training_name, advanced_training_direction,
+    advanced_training_year, branch, subbranch, experience_interval, experience_duration, experience_post, dateUpdate, user_id, groupID)
+    VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """ # ?, count is 26

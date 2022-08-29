@@ -78,7 +78,7 @@ def vizual_connect_between_steps(data: str, resumes: list[ResumeGroup] | list[Pr
 
         if set([step.db_id for step in steps]) & set(data):
             print(steps[0].db_id, steps[0].url)
-            print("    -->    ".join(step.experience_post for step in steps) + '\n\n------------------------------------------\n\n')
+            print("    -->    ".join(f"{step.experience_post}(Отрасль:{step.branch})" for step in steps) + '\n\n------------------------------------------\n\n')
 
 
 if __name__ == "__main__":

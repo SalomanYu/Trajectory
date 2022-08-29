@@ -3,6 +3,8 @@ import os
 import json
 import xlrd
 import re
+from datetime import datetime
+
 from config import *
 
 
@@ -21,6 +23,7 @@ def start_logging(logfile: str="logfile.log", folder:str="undetinfied") -> loggi
     logging.getLogger('selenium').setLevel(logging.WARNING)
     return logging
 
+
 def load_resumes_json(log:logging, path:str, is_seven_step:bool = False) -> list[ResumeGroup]:
     """Метод будет собирает данные из json-файлов и будет их выдавать
     в удобном виде списка с элементами представляющими тип данных ResumeGroup"""
@@ -37,6 +40,7 @@ def load_resumes_json(log:logging, path:str, is_seven_step:bool = False) -> list
             resumes.append(ResumeGroup(ID=key, ITEMS=items))
     else: resumes = [ResumeGroup(ID=key, ITEMS=[DBResumeProfession(*resume.values()) for resume in value]) for key, value in data.items()]
     return resumes
+
 
 def save_resumes_to_json(log: logging, resumes:list[ResumeGroup] | list[ProfessionWithSimilarResumes], filename: str, is_seven_step: bool = False) -> None:
     os.makedirs('JSON', exist_ok=True)
@@ -85,6 +89,7 @@ def connect_to_excel(path:str) -> ExcelData:
                 table_level = [int(level) for level in work_sheet.col_values(col_num)[1:] if level != '']
     return ExcelData(table_names, profession_area, table_weight_in_level, table_weight_in_group, table_level)
 
+
 def connect_to_excel_222(path:str) -> ExcelProfession:
     """Метод возвращает список профессий определенных одним profession_ID"""
     profession_area = re.sub("\d+", '', path).split('/')[-1].split(".xlsx")[0].strip().replace(" ", '_')
@@ -106,6 +111,10 @@ def connect_to_excel_222(path:str) -> ExcelProfession:
                 groupID_col = col_num    
     data = []
     for row in range(1, work_sheet.nrows):
+        try: int(work_sheet.cell(row, groupID_col).value)
+        except ValueError: 
+            # print(f"Выход из метода connect_to_excel_222: [Ошибка] не проставлены ID группы для файла: {path}")
+            return
         data.append(ExcelProfession(
             groupID=int(work_sheet.cell(row, groupID_col).value),
             name=work_sheet.cell(row, names_col).value,
@@ -116,9 +125,11 @@ def connect_to_excel_222(path:str) -> ExcelProfession:
         ))
     return data
 
+
 def get_default_average_value(statistic:set, level:int) -> int:
     if statistic and sum(statistic) > 0: return round(sum(statistic) / len(statistic))
     else: return DEFAULT_VALUES[level]
+
 
 def experience_to_months(experience: str) -> int:
     """Метод получает информацию о стаже в виде [12 лет 7 месяцев ] и возвращает ее в виде количества месяцев [151]"""
@@ -142,6 +153,141 @@ def experience_to_months(experience: str) -> int:
         return months
 
 
-if __name__ == "__main__":
-    print(connect_to_excel(path='/home/saloman/Documents/Edwica/Trajectory/Professions/23 Управление персоналом.xlsx'))
+def find_profession_in_proffessions_db(profession_name: str) -> str | None:
+    for File in os.listdir(PROFESSIONS_FOLDER_PATH):
+        if File.endswith(".xlsx"):
+            professions = connect_to_excel_222(os.path.join(PROFESSIONS_FOLDER_PATH, File))
+            if professions: 
+                for prof in professions:
+                    if prof.name.lower() == profession_name.lower().strip():
+                        current_prof = find_default_name_for_profession(proff_dbPath=os.path.join(PROFESSIONS_FOLDER_PATH, File), level=prof.level)
+                        return current_prof.name
+
+    add_profession_to_unknownDB(profession=profession_name)
+
+
+def find_default_name_for_profession(proff_dbPath: str, level: int): # profID: int,
+    # print(profID, level, proff_dbPath)
+    professions = connect_to_excel_222(proff_dbPath)
+    if professions:
+        for prof in professions:
+            if  level == prof.level and prof.weight_in_level == 1: #prof.groupID == profID and
+                return prof
+    print("Ничего не найдено")
+
+
+def add_profession_to_unknownDB(profession: str) -> None:
+    print(f"{profession=}")
+    os.makedirs("SQL", exist_ok = True)
+
+    db = sqlite3.connect(f"SQL/{UNKNOWN_PROFESSIONS_PATH}")
+    cursor = db.cursor()
+
+    cursor.execute("""CREATE TABLE IF NOT EXISTS unknown(
+        profID INTEGER PRIMARY KEY AUTOINCREMENT,
+        title VARCHAR(255),
+        load_time DATETIME)
+        """)
+    db.commit()
+
+    cursor.execute("""INSERT INTO unknown(title, load_time) VALUES(?, ?)""", (profession, datetime.now()))
+    db.commit()
+    db.close()
+
+    print(f"Профессия {profession} была добавлена в список неопознанных профессий")
+
+
+
+def move_dbData_to_groups(data: list[DBResumeProfession]) -> dict:
+    """Метод получает на вход результат парсера в виде списка, каждого строка которого представляет собой
+    одно место работы соискателя. Чтобы собрать все этапы в одно резюме нам требуется этот метод"""
+
+    data_groups = {}
+    for item in data:
+        resume = DBResumeProfession(*item)
+        if resume.url in data_groups: data_groups[resume.url].append(dict(zip(JSONFIELDS, item)))
+        else: data_groups[resume.url] = [dict(zip(JSONFIELDS, item))]
     
+    return data_groups
+
+
+def get_default_names(profession_excelpath: str) -> tuple[set[DefaultLevelProfession], list]:
+    book_reader = xlrd.open_workbook(profession_excelpath)
+    work_sheet = book_reader.sheet_by_name("Вариации названий")
+    table_titles = work_sheet.row_values(0)
+
+    for col_num in range(len(table_titles)):
+        match table_titles[col_num]:
+            case "Наименование професии и различные написания":
+                table_names_col = col_num
+            case "Вес профессии в уровне":
+                table_weight_in_level_col = col_num
+            case "Уровень должности":
+                table_level_col = col_num
+            case "Вес профессии в соответсвии":
+                table_weight_in_group = col_num
+            case "ID список профессий":
+                table_groupID_col = col_num
+    
+    names = [item for item in work_sheet.col_values(table_names_col) if item != '']
+    default_names = set()
+
+    for row_num in range(work_sheet.nrows):
+        # Это условие фильтрует профессии по 'Id список профессий'
+        # Если кортежа с содержимым (айди профессии, уровень профессии) нет в таком же кортеже дефолтных значений, то добавляем профессию
+        if (work_sheet.cell(row_num, table_groupID_col), work_sheet.cell(row_num, table_level_col) not in 
+            ((default.profID, default.level) for default in default_names)):
+
+            if (work_sheet.cell(row_num, table_weight_in_level_col).value == 0) and (work_sheet.cell(row_num, table_weight_in_group).value == 1):
+                default_names.add(DefaultLevelProfession(
+                    profID=int(work_sheet.cell(row_num, table_groupID_col).value), 
+                    name=work_sheet.cell(row_num, table_names_col).value, 
+                    level=int(work_sheet.cell(row_num, table_level_col).value)))
+            
+            elif work_sheet.cell(row_num, table_weight_in_level_col).value == 1:
+                default_names.add(DefaultLevelProfession(
+                    profID=int(work_sheet.cell(row_num, table_groupID_col).value), 
+                    name=work_sheet.cell(row_num, table_names_col).value, 
+                    level=int(work_sheet.cell(row_num, table_level_col).value)))
+        
+    return default_names, names
+
+# def load_table_data_from_database(tablename: DatabaseTable, is_seven_step: bool = False) -> list[ResumeGroup] | list[ProfessionWithSimilarResumes]:
+#     """Метод нужен для подключения к конкретной таблице БД по построению путей для получения доступа к информации
+#     конкретного шага( каждая таблица = один шаг построения пути)"""
+
+#     db = sqlite3.connect(CURRENT_DATABASE_NAME)
+#     cursor = db.cursor()
+
+#     data = cursor.execute(f"SELECT * FROM {tablename}").fetchall()
+#     data_groups = move_dbData_to_groups(data)
+    
+#     if is_seven_step:
+#         resumes = []
+#         for key, value in data_groups.items():
+#             items = [ProfessionWithSimilarResumes(resume=DBResumeProfession(*tuple(resume.values())[:-1]), similar_id=tuple(resume.values())[-1]) for resume in value]
+#             resumes.append(ResumeGroup(ID=key, ITEMS=items))
+#     else: resumes = [ResumeGroup(ID=key, ITEMS=[DBResumeProfession(*resume.values()) for resume in value]) for key, value in data_groups.items()]
+    
+#     return resumes
+
+
+# def save_resumes_to_database(data: list[ResumeGroup] | list[ProfessionWithSimilarResumes], tablename: DatabaseTable, is_seven_step: bool = False) -> None:
+
+#     db = sqlite3.connect(CURRENT_DATABASE_NAME)
+#     cursor = db.cursor()
+
+#     if is_seven_step: ...
+#     else: 
+#         for group in data:
+#             for resume in group.ITEMS:
+#                 cursor.execute(adding_to_db_template(tablename=tablename), [*resume])
+#                 db.commit()
+#     db.close()
+
+
+if __name__ == "__main__":
+    # print(connect_to_excel(path='/home/saloman/Documents/Edwica/Trajectory/Professions/23 Управление персоналом.xlsx'))
+    names = {"hr-специалист","hello", "world", "find", "me"}
+    for i in names:
+        find_profession_in_proffessions_db(i)
