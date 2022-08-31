@@ -152,7 +152,7 @@ def rename_zero_professions_by_experience(log:logging, resumes: list[ResumeGroup
                                             log.info("[BR-id:%d/Ex:%d/group:%d] Повысили нулевую должность  до %s уровня %s -> %s",step.db_id, post_experience, prof_statistic.prof_id, statistic_level.name.upper(), step.experience_post, current_name)
                                         step.experience_post = current_name
                                         step_has_changed = True
-    tools.save_resumes_to_json(log, resumes, filename=tools.STEP_6_JSON_FILE)   
+    tools.save_resumes_to_json(log, resumes, filename=tools.JSONFILE.STEP_6.value)   
 
 if __name__ == "__main__":
     corrent_min_interval_between_levels(data='')

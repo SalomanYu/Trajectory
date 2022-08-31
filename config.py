@@ -8,17 +8,11 @@ from typing import NamedTuple
 from dataclasses import dataclass, astuple
 
 
-STEP_2_JSON_FILE = "JSON/step_2_groups_result.json"
-STEP_3_JSON_FILE = "JSON/step_3_groups_without_duplicates.json"
-STEP_4_JSON_FILE = "JSON/step_4_groups_with_default_names.json"
-STEP_5_JSON_FILE = "JSON/step_5_groups_without_job_steps_duplicate.json"
-STEP_6_JSON_FILE = "JSON/step_6_update_zero_levels.json"
-STEP_7_JSON_FILE = "JSON/step_7_join_similar_path_by_similar_id.json"
 
 PROFESSIONS_FOLDER_PATH = "Professions"
 UNKNOWN_PROFESSIONS_PATH = "UnknownProfession.db" 
 CURRENT_MONTH = f"{date.today().month}.{date.today().year}" # для истории создается папка с текущей датой
-CURRENT_DATABASE_NAME = f"SQL/{CURRENT_MONTH}/TrajectoryProfessions.db"
+CURRENT_DATABASE_NAME = f"SQL/{CURRENT_MONTH}/Ammount.db"
 
 DEFAULT_VALUES = { # Словарь стандартных значений для определения опыта в месяцах конкретного уровня [Уровень: значение в месяцах]
         1: 5,
@@ -184,7 +178,7 @@ class WorkWay(NamedTuple):
     post: str
     brach: str
     level: int
-
+    
 class ConnectionBetweenSteps(NamedTuple):
     job_title: str
     links: tuple[int]
@@ -196,6 +190,14 @@ class DatabaseTable(Enum):
     STEP_5 = "ResumesWithoutStepsDuplicate"
     STEP_6 = "UpdateProfessionsWithZeroLevel"
     STEP_7 = "JoinSimilarWorkWaysBySimilarID"
+
+class JSONFILE(Enum):
+    STEP_2 = "JSON/step_2_groups_result.json"
+    STEP_3 = "JSON/step_3_groups_without_duplicates.json"
+    STEP_4 = "JSON/step_4_groups_with_default_names.json"
+    STEP_5 = "JSON/step_5_groups_without_job_steps_duplicate.json"
+    STEP_6 = "JSON/step_6_update_zero_levels.json"
+    STEP_7 = "JSON/step_7_join_similar_path_by_similar_id.json"
 
 # Данная константа помогает определить уровень должности по текущему на тот момент стажу. 
 # Используется, когда у нас недостаточно данных для автоматического определения уровня 

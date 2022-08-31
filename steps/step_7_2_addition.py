@@ -3,25 +3,32 @@ from pprint import pprint
 from config import *
 from tools import load_resumes_json, start_logging
 
+from typing import NamedTuple
+
+class SimilarWay(NamedTuple):
+    way_id: int
+    count_ways: int
+
 def find_most_popular_workWay(log):
-    data = load_resumes_json(path=STEP_7_JSON_FILE, log=log, is_seven_step=True)
+    data = load_resumes_json(path=JSONFILE.STEP_7.value, log=log, is_seven_step=True)
     similar_id_nums = [resume.ITEMS[0].similar_id for resume in data]
-    most_popular_dict = {}
-    for id_ in similar_id_nums:
-        most_popular_dict[str(id_)] = similar_id_nums.count(id_)
+    test_dict = {}
+    for similar_id in similar_id_nums:
+        test_dict[similar_id] = similar_id_nums.count(similar_id)
+
+    most_popular_ways = []
+    for key, value in test_dict.items():
+        most_popular_ways.append(SimilarWay(way_id=key, count_ways=value))
     
-    count_similar_workWays = len([value for _, value in most_popular_dict.items() if value > 1])
-    most_popular_way = max(most_popular_dict, key=most_popular_dict.get)
+    max_ways = SimilarWay(way_id=0, count_ways=0)
+    max_len = 0
+    for way in most_popular_ways:
+        if way.count_ways > max_ways.count_ways and len(get_jobSteps_like_workWay(data, similar_id=way.way_id)) >= max_len:
+            max_ways = way
+            max_len = len(get_jobSteps_like_workWay(data, similar_id=way.way_id))
+    print(max_ways)
 
-    for key, value in most_popular_dict.items():
-        if value > 1:
-            ways = get_jobSteps_like_workWay(data, similar_id=int(key))
-            if len(ways) > 2:
-                print("Count:", value)
-                pprint(ways)
-                print()
 
-    # return get_jobSteps_like_workWay(data, similar_id=int(most_popular_way))
     
 
 def get_jobSteps_like_workWay(data, similar_id: int) -> list[WorkWay]:
@@ -32,7 +39,9 @@ def get_jobSteps_like_workWay(data, similar_id: int) -> list[WorkWay]:
     
     
     work_way = [WorkWay(post=item.resume.experience_post, brach=item.resume.branch, level=get_level_by_postName(item.resume.experience_post)) for item in resume]
-    return work_way
+    
+    return work_way #+ [resume[0].resume.url]
+
 
 def get_level_by_postName(experience_post: ResumeProfessionItem.experience_post) -> 0 | 1 | 2 | 3 | 4:
     for lev in LEVEL_KEYWORDS:

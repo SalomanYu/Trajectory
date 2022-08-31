@@ -91,8 +91,8 @@ if __name__ == "__main__":
     log = tools.start_logging(logfile="step_3.log")
 
     # data = settings.load_resumes_json(log, settings.STEP_2_JSON_FILE)
-    resumes = tools.load_resumes_json(log=log, filename=config.STEP_2_JSON_FILE)
+    resumes = tools.load_resumes_json(log=log, filename=config.JSONFILE.STEP_2.value)
     data, dublicate_list = filtering_groups(resumes)
 
     data_without_dublicates = remove_dublicates(data=data, list_to_delete=dublicate_list)
-    tools.save_to_json(log, data_without_dublicates, config.STEP_3_JSON_FILE)
+    tools.save_to_json(log, data_without_dublicates, config.JSONFILE.STEP_3.value)

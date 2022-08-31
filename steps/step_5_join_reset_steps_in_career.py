@@ -103,7 +103,7 @@ def remove_repeat_steps(log:logging, data:list[ResumeGroup], set_to_remove:set) 
 
 if __name__ == "__main__":
     log = tools.start_logging("step_5.log", folder="")
-    data = tools.load_resumes_json(log=log, path=config.STEP_4_JSON_FILE)
+    data = tools.load_resumes_json(log=log, path=config.JSONFILE.STEP_4.value)
     resumes, duplicate_set = join_steps(log=log, data=data)
     resumes_without_duplicate_steps = remove_repeat_steps(log=log, data=resumes, set_to_remove=duplicate_set)
-    tools.save_resumes_to_json(log=log, resumes=resumes_without_duplicate_steps, filename=config.STEP_5_JSON_FILE)
+    tools.save_resumes_to_json(log=log, resumes=resumes_without_duplicate_steps, filename=config.JSONFILE.STEP_5.value)

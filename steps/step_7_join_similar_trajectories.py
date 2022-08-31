@@ -20,7 +20,7 @@ def detect_similar_workWays(log:logging, resumes: list[ResumeGroup]):
         for comporable in range(current+1, len(resumes)):
             comporable_steps = resumes[comporable].ITEMS
         
-            if len(current_steps) == len(comporable_steps):
+            if len(current_steps) == len(comporable_steps) and current_steps[0].name == comporable_steps[0].name:
                 current_career_jobs = [step.experience_post for step in current_steps]                    
                 comporable_career_jobs = [step.experience_post for step in comporable_steps]                    
 
@@ -34,7 +34,7 @@ def detect_similar_workWays(log:logging, resumes: list[ResumeGroup]):
                         similar_set.add(resumes[comporable].ID)
 
                         log.info("Одинаковые пути! %s -> %s", resumes[current].ID, resumes[comporable].ID)                    
-    tools.save_resumes_to_json(log=log, resumes=result_similar_resume_list, filename=config.STEP_7_JSON_FILE, is_seven_step=True)
+    tools.save_resumes_to_json(log=log, resumes=result_similar_resume_list, filename=config.JSONFILE.STEP_7.value, is_seven_step=True)
     
 
 if __name__ == "__main__":

@@ -70,7 +70,7 @@ if __name__ == "__main__":
     log = tools.start_logging(logfile="step_2.log")
     collector = SelectData(
         db_path='/home/yunoshev/Documents/Edwica/Resumes/result_server/SQL/Professions(2022_6).dbcolle',
-        file_output_name=config.STEP_2_JSON_FILE,
+        file_output_name=config.JSONFILE.STEP_2.value,
         log=log
     )
     collector.collect()

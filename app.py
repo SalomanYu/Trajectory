@@ -8,11 +8,11 @@ from rich.console import Console
 
 def build_way(professions_path: str):
     tablename = professions_path.replace(" ", '_').replace('.xlsx', '')
-    my_way = Way(professions_db=os.path.join(config.PROFESSIONS_FOLDER_PATH, professions_path), db_tablename='Управление_персоналом', logging_dir=ex_file.replace(".xlsx", ''))
-    # my_way.parse_current_profession()
+    my_way = Way(professions_db=os.path.join(config.PROFESSIONS_FOLDER_PATH, professions_path), db_tablename=tablename, logging_dir=ex_file.replace(".xlsx", ''))
+    my_way.parse_current_profession()
     # my_way.collect_data_from_sql_to_json()
     # my_way.remove_repeat_groupes()
-    my_way.rename_to_default_names()
+    # my_way.rename_to_default_names()
     # my_way.join_reset_steps()
     # my_way.detect_profession_experience_time()
 
@@ -30,6 +30,7 @@ if __name__ == "__main__":
 
     for ex_file in os.listdir(path=config.PROFESSIONS_FOLDER_PATH):
         if ex_file.endswith(".xlsx"):
-            if ex_file == "23 Управление персоналом.xlsx":
+            if ex_file == "15 бухгалтерия и налоги.xlsx":
+                print("работаем с файлом профессий: ", ex_file)
                 build_way(professions_path=ex_file)
                 break

@@ -31,7 +31,7 @@ class ProfessionParser(Resume):
         self.profession_weight_in_level = profession_weight_in_level # Вес профессии в уровне, пригодится для того, чтобы определять дефолтные значения для профессий одного уровня
 
         self.name_db_table = name_db_table.replace(".", "_") # В названии таблицы не должно быть точек
-        self.name_database = DATABASE_NAME
+        self.name_database = CURRENT_DATABASE_NAME
 
         self.current_page_btn_active = 1
         self.page_step = 1

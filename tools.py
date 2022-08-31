@@ -154,7 +154,6 @@ def experience_to_months(experience: str) -> int:
 
 
 def find_profession_in_proffessions_db(profession_name: str) -> str | None:
-    print("1:", profession_name)
     for File in os.listdir(PROFESSIONS_FOLDER_PATH):
         if File.endswith(".xlsx"):
             professions = connect_to_excel_222(os.path.join(PROFESSIONS_FOLDER_PATH, File))
@@ -176,13 +175,11 @@ def find_default_name_for_profession(proff_dbPath: str, level: int, profID: int)
     
         # Если 
         for prof in professions:
-            if  level == prof.level  and prof.groupID == profID :
+            if  level == prof.level  and prof.groupID == profID and prof.weight_in_group == 1:
                 return prof
-    print("Ничего не найдено")
 
 
 def add_profession_to_unknownDB(profession: str) -> None:
-    print(f"{profession=}")
     os.makedirs("SQL", exist_ok = True)
 
     db = sqlite3.connect(f"SQL/{UNKNOWN_PROFESSIONS_PATH}")
