@@ -1,5 +1,6 @@
 #!/usr/bin/python3.10
 
+import re
 from way import Way
 import config
 import os
@@ -7,7 +8,7 @@ from rich.console import Console
 
 
 def build_way(professions_path: str):
-    tablename = professions_path.replace(" ", '_').replace('.xlsx', '')
+    tablename = re.sub("\d+ ", "", professions_path).replace(" ", '_').replace('.xlsx', '')
     my_way = Way(professions_db=os.path.join(config.PROFESSIONS_FOLDER_PATH, professions_path), db_tablename=tablename, logging_dir=ex_file.replace(".xlsx", ''))
     my_way.parse_current_profession()
     # my_way.collect_data_from_sql_to_json()

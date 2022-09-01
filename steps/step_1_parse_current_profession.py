@@ -21,7 +21,9 @@ from tools import *
 
 
 class ProfessionParser(Resume):
-    def __init__(self, name_db_table: str,  profession_name:str, profession_area:str, profession_level:int, profession_weight_in_level:int, profession_weight_in_group:int):
+    def __init__(
+        self, name_db_table: str,  profession_name:str, profession_area:str,
+        profession_level:int, profession_weight_in_level:int, profession_weight_in_group:int, profession_groupID: int):
         
         super().__init__()
         self.profession_name = profession_name # Название профессии из базы данных для поиска в hh.ru
@@ -29,8 +31,9 @@ class ProfessionParser(Resume):
         self.profession_level = profession_level # Уровень профессии
         self.profession_weight_in_group = profession_weight_in_group # Вес профессии в группе, пригодится для того, чтобы определять самую главную профессию в базе
         self.profession_weight_in_level = profession_weight_in_level # Вес профессии в уровне, пригодится для того, чтобы определять дефолтные значения для профессий одного уровня
+        self.profession_groupID = profession_groupID 
 
-        self.name_db_table = name_db_table.replace(".", "_") # В названии таблицы не должно быть точек
+        self.name_db_table = name_db_table
         self.name_database = CURRENT_DATABASE_NAME
 
         self.current_page_btn_active = 1
@@ -158,7 +161,7 @@ class ProfessionParser(Resume):
                     university_name=univer.name, university_direction=univer.direction, university_year=univer.year,
                     languages=languages, skills=key_skills, training_name=training.name, training_direction=training.direction,
                     training_year=training.year, branch=work.branch, subbranch=work.subbranch, experience_interval=work.interval,
-                    experience_duration=work.duration, experience_post=work.post, dateUpdate=self.resume_dateUpdate, url=url))
+                    experience_duration=work.duration, experience_post=work.post, dateUpdate=self.resume_dateUpdate, url=url, groupID=self.profession_groupID))
                 
             return res 
         else: # Вариант, когда нет опыта работы
@@ -169,7 +172,7 @@ class ProfessionParser(Resume):
                     university_name=univer.name, university_direction=univer.direction, university_year=univer.year,
                     languages=languages, skills=key_skills, training_name=training.name, training_direction=training.direction,
                     training_year=training.year, branch='', subbranch='', experience_interval='',experience_duration='',
-                    experience_post='', dateUpdate=self.resume_dateUpdate, url=url)
+                    experience_post='', dateUpdate=self.resume_dateUpdate, url=url, groupID=self.profession_groupID)
     
     def create_table(self, name):
         cursor, db = self.connect_to_db(self.name_database)
@@ -200,7 +203,8 @@ class ProfessionParser(Resume):
                 experience_duration VARCHAR(50),
                 experience_post VARCHAR(255),
                 dateUpdate VARCHAR(30),
-                url VARCHAR(255)
+                url VARCHAR(255),
+                groupID INTEGER
                 );
             """
         cursor.execute(pattern)
@@ -213,7 +217,7 @@ class ProfessionParser(Resume):
 
         pattern = f"INSERT INTO {name}(weight_in_group, level, level_in_group, area, name_of_profession, city, general_experience, specialization, salary, higher_education_university,"\
             "higher_education_direction, higher_education_year, languages, skills, advanced_training_name, advanced_training_direction," \
-            f"advanced_training_year, branch, subbranch, experience_interval, experience_duration, experience_post, dateUpdate, url) VALUES({','.join('?' for i in range(24))})"
+            f"advanced_training_year, branch, subbranch, experience_interval, experience_duration, experience_post, dateUpdate, url, groupID) VALUES({','.join('?' for i in range(25))})"
 
         if many_rows: 
             cursor.executemany(pattern, data) # Результат выполнения команды в скобках VALUES превратится в VALUES(?,?,?, ?n), n = len(data)

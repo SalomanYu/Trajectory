@@ -91,6 +91,7 @@ class ResumeProfessionItem(NamedTuple):
     experience_post: str
     dateUpdate: str
     url: str
+    groupID: int
 
 
 class ProfessionWithSimilarResumes(NamedTuple):

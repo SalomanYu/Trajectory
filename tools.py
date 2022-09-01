@@ -90,7 +90,7 @@ def connect_to_excel(path:str) -> ExcelData:
     return ExcelData(table_names, profession_area, table_weight_in_level, table_weight_in_group, table_level)
 
 
-def connect_to_excel_222(path:str) -> ExcelProfession:
+def connect_to_excel_222(path:str) -> list[ExcelProfession]:
     """Метод возвращает список профессий определенных одним profession_ID"""
     profession_area = re.sub("\d+", '', path).split('/')[-1].split(".xlsx")[0].strip().replace(" ", '_')
     book_reader = xlrd.open_workbook(path)
@@ -115,13 +115,22 @@ def connect_to_excel_222(path:str) -> ExcelProfession:
         except ValueError: 
             # print(f"Выход из метода connect_to_excel_222: [Ошибка] не проставлены ID группы для файла: {path}")
             return
+        try:
+            weight_in_group = int(work_sheet.cell(row, weight_in_group_col).value)
+        except ValueError: # Значит пустое поле
+            weight_in_group = 0
+        try:
+            weight_in_level = int(work_sheet.cell(row, weight_in_level_col).value)
+        except ValueError: # Значит пустое поле
+            weight_in_level = 0
+            
         data.append(ExcelProfession(
             groupID=int(work_sheet.cell(row, groupID_col).value),
             name=work_sheet.cell(row, names_col).value,
             area=profession_area,
             level=int(work_sheet.cell(row, level_col).value),
-            weight_in_group=int(work_sheet.cell(row, weight_in_group_col).value),
-            weight_in_level=int(work_sheet.cell(row, weight_in_level_col).value)
+            weight_in_group=weight_in_group,
+            weight_in_level=weight_in_level
         ))
     return data
 

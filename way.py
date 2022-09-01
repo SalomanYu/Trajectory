@@ -23,26 +23,28 @@ class Way:
     def __init__(self, professions_db: str, db_tablename:str, logging_dir: str):
         self.professions_db = professions_db
         self.logging_dir = logging_dir
-        self.db_table_name = db_tablename
+        self.db_table_name = db_tablename.replace(".", "_") # В названии таблицы не должно быть точек
 
 
     def parse_current_profession(self) -> None:
         """"""
 
         log = tools.start_logging(logfile="step_1.log", folder=self.logging_dir)
-        excel_data = tools.connect_to_excel(path=self.professions_db)
+        excel_data = tools.connect_to_excel_222(path=self.professions_db)
         # console.log("[green] Start parsing professions")
-        for item in track(range(len(excel_data.names)), description="[yellow]Profession parsing progress"):
-            log.debug("Searching profession - %s", excel_data.names[item])
-            
-            self.db_table_name = excel_data.area
+        for item in track(range(len(excel_data)), description="[yellow]Profession parsing progress"):
+            prof_item = excel_data[item] 
+            self.db_table_name = prof_item.area
+            log.debug("Searching profession - %s", prof_item.name)
+
             profession = ProfessionParser(
                 name_db_table=self.db_table_name,
-                profession_name=excel_data.names[item],
-                profession_area=excel_data.area,
-                profession_level=excel_data.levels[item],
-                profession_weight_in_group=excel_data.weights_in_group[item],
-                profession_weight_in_level=excel_data.weights_in_level[item]
+                profession_name=prof_item.name,
+                profession_area=prof_item.area,
+                profession_level=prof_item.level,
+                profession_weight_in_group=prof_item.weight_in_group,
+                profession_weight_in_level=prof_item.weight_in_level,
+                profession_groupID=prof_item.groupID
             )
             profession.find()
         print("Step 1 finished!")
@@ -54,7 +56,7 @@ class Way:
 
         log = tools.start_logging(logfile="step_2.log", folder=self.logging_dir)
         collector = SelectData(
-            db_path=os.path.join("SQL", config.CURRENT_MONTH, config.DATABASE_NAME),
+            db_path=config.CURRENT_DATABASE_NAME,
             db_table=self.db_table_name,
             file_output_name=config.JSONFILE.STEP_2.value,
             log=log
