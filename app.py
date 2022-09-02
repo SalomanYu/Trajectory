@@ -18,7 +18,7 @@ def build_way(professions_path: str):
     # my_way.detect_profession_experience_time()
 
     # снова возвращаемся к 5 и 6 шагу
-    # my_way.join_reset_steps(logfile="step_5_2.log", dataPath=config.STEP_6_JSON_FILE)
+    # my_way.join_reset_steps(logfile="step_5_2.log", dataPath=config.JSONFILE.STEP_6.value)
     # my_way.detect_profession_experience_time(logfile="step_6_2.log")
 
     # my_way.find_similar_workWays()
@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     for ex_file in os.listdir(path=config.PROFESSIONS_FOLDER_PATH):
         if ex_file.endswith(".xlsx"):
-            if ex_file == "15 бухгалтерия и налоги.xlsx":
+            if ex_file == "Ветеринария.xlsx":
                 print("работаем с файлом профессий: ", ex_file)
                 build_way(professions_path=ex_file)
                 break

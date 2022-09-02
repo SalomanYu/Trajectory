@@ -45,13 +45,13 @@ def set_resume_names_to_default_values(log: logging, path: str):
                                 log.info("[%d]Поменяли НУЛЕВУЮ ДОЛЖНОСТЬ[%d - %d]: %s -> %s", step.db_id, step.groupID, default.profID, step.experience_post, default.name)
                                 step.experience_post = default.name
                                 name_step_has_changed = True
-            if not name_step_has_changed:
-                current_name = tools.find_profession_in_proffessions_db(step.experience_post)
-                if current_name:
-                    name_step_has_changed = True
-                    log.info("[ID: %d] Нашли наименование ДОЛЖНОСТИ в других файлах: %s -> %s", step.db_id, step.experience_post, current_name)
-                    for item in job_steps: item.name = current_name # меняем наименование профессии везде
-                else: log.info("[ID: %d] НЕ НАШЛИ наименование ДОЛЖНОСТИ в других файлах: %s", step.db_id, step.experience_post)
+            # if not name_step_has_changed:
+            #     current_name = tools.find_profession_in_proffessions_db(step.experience_post)
+            #     if current_name:
+            #         name_step_has_changed = True
+            #         log.info("[ID: %d] Нашли наименование ДОЛЖНОСТИ в других файлах: %s -> %s", step.db_id, step.experience_post, current_name)
+            #         for item in job_steps: item.name = current_name # меняем наименование профессии везде
+            #     else: log.info("[ID: %d] НЕ НАШЛИ наименование ДОЛЖНОСТИ в других файлах: %s", step.db_id, step.experience_post)
                    
             # if not name_step_has_changed: # Если мы не смогли заменить должность на дефолтное наименование этой сферы, то попробуем найти такую дефолтное значение в других профессиях
             #     pass

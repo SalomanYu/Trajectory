@@ -150,9 +150,9 @@ class Way:
         log = tools.start_logging(logfile="step_8.log", folder=self.logging_dir)
         data = tools.load_resumes_json(log=log, path=config.JSONFILE.STEP_7.value, is_seven_step=True)
 
-        # connection_between_steps = step_8.find_connection_between_steps(resumes=data)
-        # for item in track(range(len(connection_between_steps)), description='[yellow]Запись в БД'):
-        #     step_8.add_to_table(data=connection_between_steps[item])
+        connection_between_steps = step_8.find_connection_between_steps(resumes=data)
+        for item in track(range(len(connection_between_steps)), description='[yellow]Запись в БД'):
+            step_8.add_to_table(data=connection_between_steps[item])
 
-        vizual.vizual_connect_between_steps(data='', resumes=data)
+        # vizual.vizual_connect_between_steps(data, resumes=data)
  
