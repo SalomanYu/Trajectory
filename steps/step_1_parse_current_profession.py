@@ -33,7 +33,7 @@ class ProfessionParser(Resume):
         self.profession_weight_in_level = profession_weight_in_level # Вес профессии в уровне, пригодится для того, чтобы определять дефолтные значения для профессий одного уровня
         self.profession_groupID = profession_groupID 
 
-        self.name_db_table = name_db_table
+        self.name_db_table = name_db_table.replace(",", "")
         self.name_database = CURRENT_DATABASE_NAME
 
         self.current_page_btn_active = 1
@@ -120,7 +120,7 @@ class ProfessionParser(Resume):
     def parser_resume_list(self, url):
         resume_urls_list, count_resumes_in_page = self.find_required_resumes(url)
         logging.info("Try to start four processes for parsing")
-        with Pool(4) as process:
+        with Pool(POOLS) as process:
                 process.map_async(  func=self.parse_resume, # Функция, которая будет вызываться с аргументом
                                     iterable=resume_urls_list, # Список аргументов, которые будут передаваться по очереди
                                     error_callback=lambda x:logging.error('Thread error --> %s', x) # Что будет, если произодет ошибка в многоптоке

@@ -123,7 +123,7 @@ class Way:
         default_names, edwica_db_names = tools.get_default_names(profession_excelpath=self.professions_db)
         profession_statistic = step_6.get_average_duration(resumes=resumes)
         corrected_statistic = step_6.corrent_min_interval_between_levels(data=profession_statistic)
-        # vizual.show_vizualization(default_names=default_names, statistic=corrected_statistic)
+        # vizual.show_vizualization_step_6(default_names=default_names, statistic=corrected_statistic)
         step_6.rename_zero_professions_by_experience(log=log, resumes=resumes, default_names=default_names, profession_default_values=corrected_statistic,edwica_db_names=edwica_db_names)
         print("Step 6 finished!")
 
@@ -131,8 +131,8 @@ class Way:
     def find_similar_workWays(self):
         log = tools.start_logging("step_7.log", folder=self.logging_dir)
         # Объединение путей 
-        # data = tools.load_resumes_json(log, config.JSONFILE.STEP_6.value)
-        # step_7.detect_similar_workWays(log, data)    
+        data = tools.load_resumes_json(log, config.JSONFILE.STEP_6.value)
+        step_7.detect_similar_workWays(log, data)    
         
         # Визуализация
         # data_7 = tools.load_resumes_json(log, config.STEP_7_JSON_FILE, True)

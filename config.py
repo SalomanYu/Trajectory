@@ -12,7 +12,8 @@ from dataclasses import dataclass, astuple
 PROFESSIONS_FOLDER_PATH = "Professions"
 UNKNOWN_PROFESSIONS_PATH = "UnknownProfession.db" 
 CURRENT_MONTH = f"{date.today().month}.{date.today().year}" # для истории создается папка с текущей датой
-CURRENT_DATABASE_NAME = f"SQL/{CURRENT_MONTH}/Vetirenar.db"
+CURRENT_DATABASE_NAME = f"SQL/{CURRENT_MONTH}/Finance.db"
+POOLS = 10
 
 DEFAULT_VALUES = { # Словарь стандартных значений для определения опыта в месяцах конкретного уровня [Уровень: значение в месяцах]
         1: 5,
