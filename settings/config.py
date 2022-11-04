@@ -12,7 +12,11 @@ from dataclasses import dataclass, astuple
 PROFESSIONS_FOLDER_PATH = "Data/Professions"
 UNKNOWN_PROFESSIONS_PATH = "UnknownProfession.db" 
 CURRENT_MONTH = f"{date.today().month}.{date.today().year}" # для истории создается папка с текущей датой
+<<<<<<< HEAD
 CURRENT_DATABASE_NAME = f"Data/SQL/10.2022/Way.db"
+=======
+CURRENT_DATABASE_NAME = f"Data/SQL/{CURRENT_MONTH}/Way.db"
+>>>>>>> a778614650c45e0ec0375650062ae509fb4c374f
 POOLS = 10
 
 DEFAULT_VALUES = { # Словарь стандартных значений для определения опыта в месяцах конкретного уровня [Уровень: значение в месяцах]
@@ -49,6 +53,27 @@ class ProfessionStep:
     experienceDuration: str
     branch: str
     subbranch: str
+<<<<<<< HEAD
+=======
+    experience_interval: str
+    experience_duration: str
+    experience_post: str
+    dateUpdate: str
+    url: str
+    groupID: int
+
+    def __iter__(self):
+        return iter(astuple(self))
+##########################################################
+@dataclass(slots=True)
+class ProfessionStep:
+    title: str
+    experiencePost: str
+    experienceInterval: str
+    experienceDuration: str
+    branch: str
+    subbranch: str
+>>>>>>> a778614650c45e0ec0375650062ae509fb4c374f
     weightInGroup: int
     level: int
     levelInGroup: int
@@ -101,7 +126,11 @@ class ResumeProfessionItem(NamedTuple):
 
 class ResumeGroup(NamedTuple): # Класс, который хранит информацию о резюме в виде айди резюме и списка разложенных этапов в карьере
     ID: str # Ссылка резюме
+<<<<<<< HEAD
     ITEMS: tuple[ProfessionStep]
+=======
+    ITEMS: tuple[ResumeProfessionItem] | tuple[ProfessionWithSimilarResumes] | tuple[ProfessionStep]
+>>>>>>> a778614650c45e0ec0375650062ae509fb4c374f
 
 class Variables(NamedTuple): # HH
     name_db: str
@@ -182,10 +211,28 @@ class ConnectionBetweenSteps(NamedTuple):
     job_title: str
     links: tuple[int]
 
+<<<<<<< HEAD
 class EdwicaProfession(NamedTuple):
     """Класс используется для проверки, есть ли профессия из резюме в базе Эдвики и если есть, то мы можем определеить отрасль"""
     name: str
     area: str 
+=======
+class DatabaseTable(Enum):
+    STEP_2 = "Управление_персоналом"
+    STEP_3 = "NoneRepeatResumeDuplicates"
+    STEP_4 = "ResumesByDefaultNames"
+    STEP_5 = "ResumesWithoutStepsDuplicate"
+    STEP_6 = "UpdateProfessionsWithZeroLevel"
+    STEP_7 = "JoinSimilarWorkWaysBySimilarID"
+
+class JSONFILE(Enum):
+    STEP_2 = "Data/JSON/step_2_groups_result.json"
+    STEP_3 = "Data/JSON/step_3_groups_without_duplicates.json"
+    STEP_4 = "Data/JSON/step_4_groups_with_default_names.json"
+    STEP_5 = "Data/JSON/step_5_groups_without_job_steps_duplicate.json"
+    STEP_6 = "Data/JSON/step_6_update_zero_levels.json"
+    STEP_7 = "Data/JSON/step_7_join_similar_path_by_similar_id.json"
+>>>>>>> a778614650c45e0ec0375650062ae509fb4c374f
 
 # Данная константа помогает определить уровень должности по текущему на тот момент стажу. 
 # Используется, когда у нас недостаточно данных для автоматического определения уровня 

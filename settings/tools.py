@@ -25,6 +25,7 @@ def start_logging(logfile: str="logfile.log", folder:str="undetinfied") -> loggi
     return logging
 
 
+<<<<<<< HEAD
 # def load_resumes_json(log:logging, path:str, is_seven_step:bool = False) -> list[ResumeGroup]:
 #     """Метод будет собирает данные из json-файлов и будет их выдавать
 #     в удобном виде списка с элементами представляющими тип данных ResumeGroup"""
@@ -41,6 +42,24 @@ def start_logging(logfile: str="logfile.log", folder:str="undetinfied") -> loggi
 #             resumes.append(ResumeGroup(ID=key, ITEMS=items))
 #     else: resumes = [ResumeGroup(ID=key, ITEMS=[DBResumeProfession(*resume.values()) for resume in value]) for key, value in data.items()]
 #     return resumes
+=======
+def load_resumes_json(log:logging, path:str, is_seven_step:bool = False) -> list[ResumeGroup]:
+    """Метод будет собирает данные из json-файлов и будет их выдавать
+    в удобном виде списка с элементами представляющими тип данных ResumeGroup"""
+    with open(path, 'r', encoding="utf-8") as input_file:
+        line = input_file.read()
+        data = json.loads(line)
+
+    log.info(f"Took json-data from {path}")
+
+    if is_seven_step:
+        resumes = []
+        for key, value in data.items():
+            items = [ProfessionWithSimilarResumes(resume=DBResumeProfession(*tuple(resume.values())[:-1]), similar_id=tuple(resume.values())[-1]) for resume in value]
+            resumes.append(ResumeGroup(ID=key, ITEMS=items))
+    else: resumes = [ResumeGroup(ID=key, ITEMS=[DBResumeProfession(*resume.values()) for resume in value]) for key, value in data.items()]
+    return resumes
+>>>>>>> a778614650c45e0ec0375650062ae509fb4c374f
 
 def find_profession_excelFile_by_area(area: str) -> str | None:
     folder = "Data/Professions"
@@ -58,9 +77,15 @@ def find_profession_excelFile_by_area(area: str) -> str | None:
             
 
 
+<<<<<<< HEAD
 def get_professions_from_excel(area: str = 'Ит / Интернет / Телеком', path: str = None) -> list[ExcelProfession]:
     """Метод возвращает список профессий определенных одним profession_ID"""
     if path is None: path = find_profession_excelFile_by_area(area)
+=======
+def get_professions_from_excel(area: str) -> list[ExcelProfession]:
+    """Метод возвращает список профессий определенных одним profession_ID"""
+    path = find_profession_excelFile_by_area(area)
+>>>>>>> a778614650c45e0ec0375650062ae509fb4c374f
     profession_area = re.sub("\d+", '', path).split('/')[-1].split(".xlsx")[0].strip().replace(" ", '_')
     book_reader = xlrd.open_workbook(path)
     work_sheet = book_reader.sheet_by_name('Вариации названий')
@@ -82,7 +107,11 @@ def get_professions_from_excel(area: str = 'Ит / Интернет / Телек
     for row in range(1, work_sheet.nrows): # В файле могут быть пропущены значения в строках, поэтому здесь есть блок try-except
         try: int(work_sheet.cell(row, groupID_col).value)
         except ValueError: 
+<<<<<<< HEAD
             print(f"Выход из метода get_professions_from_excel: [Ошибка] не проставлены ID группы для файла: {path}")
+=======
+            # print(f"Выход из метода get_professions_from_excel: [Ошибка] не проставлены ID группы для файла: {path}")
+>>>>>>> a778614650c45e0ec0375650062ae509fb4c374f
             return
         try:weight_in_group = int(work_sheet.cell(row, weight_in_group_col).value)
         except ValueError: weight_in_group = 0 # Значит пустое поле
@@ -92,7 +121,11 @@ def get_professions_from_excel(area: str = 'Ит / Интернет / Телек
         data.append(ExcelProfession(
             groupID=int(work_sheet.cell(row, groupID_col).value),
             name=work_sheet.cell(row, names_col).value,
+<<<<<<< HEAD
             area=area,
+=======
+            area=profession_area,
+>>>>>>> a778614650c45e0ec0375650062ae509fb4c374f
             level=int(work_sheet.cell(row, level_col).value),
             weight_in_group=weight_in_group,
             weight_in_level=weight_in_level
@@ -167,6 +200,7 @@ def add_profession_to_unknownDB(profession: str) -> None:
 
 
 
+<<<<<<< HEAD
 # def move_dbData_to_groups(data: list[DBResumeProfession]) -> dict:
 #     """Метод получает на вход результат парсера в виде списка, каждого строка которого представляет собой
 #     одно место работы соискателя. Чтобы собрать все этапы в одно резюме нам требуется этот метод"""
@@ -183,6 +217,24 @@ def get_default_names(areas: tuple[str]) -> tuple[set[DefaultLevelProfession], l
     files = (find_profession_excelFile_by_area(area) for area in areas)
     default_names: set[DefaultLevelProfession] = set()
     edwica_db_names: list[EdwicaProfession] = []
+=======
+def move_dbData_to_groups(data: list[DBResumeProfession]) -> dict:
+    """Метод получает на вход результат парсера в виде списка, каждого строка которого представляет собой
+    одно место работы соискателя. Чтобы собрать все этапы в одно резюме нам требуется этот метод"""
+
+    data_groups = {}
+    for item in data:
+        resume = DBResumeProfession(*item)
+        if resume.url in data_groups: data_groups[resume.url].append(dict(zip(JSONFIELDS, item)))
+        else: data_groups[resume.url] = [dict(zip(JSONFIELDS, item))]
+    
+    return data_groups
+
+def get_default_names(areas: tuple[str]) -> tuple[set[DefaultLevelProfession], list[str]]:
+    files = (find_profession_excelFile_by_area(area) for area in areas)
+    default_names: set[DefaultLevelProfession] = set()
+    edwica_db_names: list[str] = []
+>>>>>>> a778614650c45e0ec0375650062ae509fb4c374f
 
     for profession_excelpath in files: # Интерируемся по каждому файлу, чтобы у нас в списке были все профобласти
         book_reader = xlrd.open_workbook(profession_excelpath)
@@ -194,10 +246,16 @@ def get_default_names(areas: tuple[str]) -> tuple[set[DefaultLevelProfession], l
         level_col = 4 # Уровень должности
         weight_in_group_col = 3 # Вес профессии в соответсвии
         groupID_col = 1 # ID список профессий
+<<<<<<< HEAD
         area: str = [i for i in area_sheet.col_values(2)][1] # Выбираем профобласть        
         names: list[EdwicaProfession] = [EdwicaProfession(item, area) for item in work_sheet.col_values(names_col) if item != ''][1:] # Собираем все Наименования профессии и различные написания в переменную names
         edwica_db_names += names
 
+=======
+        names: list[str] = [item for item in work_sheet.col_values(names_col) if item != ''][1:] # Собираем все Наименования профессии и различные написания в переменную names
+        area: str = [i for i in area_sheet.col_values(2)][1] # Выбираем профобласть        
+        
+>>>>>>> a778614650c45e0ec0375650062ae509fb4c374f
         # Ищем для каждого уровня 
         for row_num in range(1, work_sheet.nrows): # Начинаем со второй строки, чтобы не брать заголовки столбцов:
             name = work_sheet.cell(row_num, names_col).value
@@ -210,6 +268,7 @@ def get_default_names(areas: tuple[str]) -> tuple[set[DefaultLevelProfession], l
             if (groupId, level, area) not in ((default.profID, default.level, default.area) for default in default_names):
                 if (weight_in_level == 0 and  weight_in_group == 1) or (weight_in_level == 1):
                     default_names.add(DefaultLevelProfession(groupId, level, name, area))
+<<<<<<< HEAD
 
     return default_names, edwica_db_names
 
@@ -227,6 +286,26 @@ def get_default_names(areas: tuple[str]) -> tuple[set[DefaultLevelProfession], l
 #                 step.university_direction, step.university_year, step.languages, step.skills, step.training_name, step.training_direction,
 #                 step.training_year, step.dateUpdate, step.url, item.similar_id)
 #             database.add(table_name=table, data=row)
+=======
+        edwica_db_names += names
+
+    return default_names, edwica_db_names
+
+def move_json_to_db(jsonfile: str = "_"):
+    table = "Бухгалтерия_и_налоги"
+    log = start_logging()
+    database.create_table(table_name=table)
+    data = load_resumes_json(log, path=jsonfile, is_seven_step=True)
+    for resume in data:
+        for item in resume.ITEMS:
+            step = item.resume
+            row = ProfessionStep(step.name, step.experience_post, step.experience_interval, step.experience_duration,
+                step.branch, step.subbranch, step.weight_in_group, step.level, step.weight_in_level, step.groupID, step.area,
+                step.city, step.general_experience, step.specialization, step.salary, step.university_name,
+                step.university_direction, step.university_year, step.languages, step.skills, step.training_name, step.training_direction,
+                step.training_year, step.dateUpdate, step.url, item.similar_id)
+            database.add(table_name=table, data=row)
+>>>>>>> a778614650c45e0ec0375650062ae509fb4c374f
 
 def change_structure_table_in_sql(old_db: str, old_table: str, new_table: str, new_db: str = CURRENT_DATABASE_NAME):
     """Это временный метод, который помогает привести старую структуру БД к одному виду

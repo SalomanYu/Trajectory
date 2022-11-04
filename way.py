@@ -100,9 +100,14 @@ class Way:
          прогнать метод определения среднего опыта и переименования должностей согласно этим данным"""
 
         log = tools.start_logging(logfile=logfile, folder=self.logging_dir)
+<<<<<<< HEAD
         areas = database.get_all_areas(tablename='New', db_name="Data/SQL/10.2022/Way — копия.db")
         default_names, edwica_db_names = tools.get_default_names(areas)
         # print(f"{default_names=}")
+=======
+        areas = database.get_all_areas(tablename='New')
+        default_names, edwica_db_names = tools.get_default_names(areas)
+>>>>>>> a778614650c45e0ec0375650062ae509fb4c374f
         profession_statistic = step_6.get_average_duration(resumes=resumes_without_repeat_steps)
         corrected_statistic = step_6.corrent_min_interval_between_levels(data=profession_statistic)
         # vizual.show_vizualization_step_6(default_names=default_names, statistic=corrected_statistic)
@@ -116,7 +121,11 @@ class Way:
         return renamed_zero_professions
 
 
+<<<<<<< HEAD
     def find_similar_workWays(self, renamed_zero_professions: list[config.ResumeGroup]) -> list[config.ResumeGroup]:
+=======
+    def find_similar_workWays(self, renamed_zero_professions: list[config.ResumeGroup]):
+>>>>>>> a778614650c45e0ec0375650062ae509fb4c374f
         log = tools.start_logging("step_7.log", folder=self.logging_dir)
         # Объединение путей 
         similared_steps = step_7.detect_similar_workWays(log, renamed_zero_professions)    
