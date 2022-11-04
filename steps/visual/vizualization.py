@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from config import DefaultLevelProfession, ProfessionStatistic, ProfessionWithSimilarResumes, ResumeGroup
-from tools import experience_to_months, load_resumes_json
+from settings.config import DefaultLevelProfession, ProfessionStatistic, ResumeGroup
+from settings.tools import experience_to_months
 
 
 
@@ -66,11 +66,10 @@ def show_step_7(step_3_data: tuple[ResumeGroup], step_7_data: tuple[ResumeGroup]
                             break   
         # break
 
-def vizual_connect_between_steps(data: str, resumes: list[ResumeGroup] | list[ProfessionWithSimilarResumes]):
+def vizual_connect_between_steps(data: str, resumes: list[ResumeGroup]):
     data = [14,22,30,34,37,42,] #43,61,70,81,107,114,122,124,125,222,224,234,252,269,273,12231,12323,12324,12329]
     for resume in resumes:
         steps = resume.ITEMS
-        if isinstance(steps[0], ProfessionWithSimilarResumes): steps = [item.resume for item in steps]
         for item in steps:
             if item.db_id == data[0]: 
                 print(f"\n\t\t\t\t\t\tHeader: {item.experience_post}\n\n\n") 

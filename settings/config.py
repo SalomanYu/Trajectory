@@ -9,10 +9,10 @@ from dataclasses import dataclass, astuple
 
 
 
-PROFESSIONS_FOLDER_PATH = "Professions"
+PROFESSIONS_FOLDER_PATH = "Data/Professions"
 UNKNOWN_PROFESSIONS_PATH = "UnknownProfession.db" 
 CURRENT_MONTH = f"{date.today().month}.{date.today().year}" # для истории создается папка с текущей датой
-CURRENT_DATABASE_NAME = f"SQL/{CURRENT_MONTH}/Finance.db"
+CURRENT_DATABASE_NAME = f"Data/SQL/10.2022/Way.db"
 POOLS = 10
 
 DEFAULT_VALUES = { # Словарь стандартных значений для определения опыта в месяцах конкретного уровня [Уровень: значение в месяцах]
@@ -27,46 +27,50 @@ class RequiredUrls:
     category: str
     url: str
 
+class SimilarWay(NamedTuple):
+    """Используется в методе нахождения самого популярного пути"""
+    resumeId: str
+    similarId: int
+
 @dataclass
 class DefaultExperience: # Используется в кортеже "стандартных уровни стажа работы"
     name: str
+    area: str
     level: int
     min_value: int
     max_value: int
 
-
-@dataclass
-class DBResumeProfession:
-    db_id: int
-    weight_in_group: int
-    level: int
-    weight_in_level: int
-    area: str
-    name: str
-    city: str
-    general_experience: str
-    specialization: str
-    salary: str
-    university_name: str
-    university_direction: str
-    university_year: str | int
-    languages: str
-    skills: str
-    training_name: str
-    training_direction: str
-    training_year: str
+##########################################################
+@dataclass(slots=True)
+class ProfessionStep:
+    title: str
+    experiencePost: str
+    experienceInterval: str
+    experienceDuration: str
     branch: str
     subbranch: str
-    experience_interval: str
-    experience_duration: str
-    experience_post: str
-    dateUpdate: str
-    url: str
-    groupID: int
-
-    def __iter__(self):
-        return iter(astuple(self))
-
+    weightInGroup: int
+    level: int
+    levelInGroup: int
+    groupId: int
+    area: str
+    city: str
+    generalExcepience: str
+    specialization: str
+    salary: str
+    educationUniversity: str
+    educationDirection: str
+    educationYear: str # Потому что может быть перечисление
+    languages: str
+    skills: str
+    advancedTrainingTitle: str
+    advancedTrainingDirection: str
+    advancedTrainingYear: str
+    dateUpdate: date
+    resumeId: str
+    similarPathId: int | None = None
+    db_id: set | None = None # Эта переменная отвечает за айди конкретного этапа. Он будет использоваться только внутри програмы, в бд эта константа проставляется автоматически (id)
+###########################################################
 class ResumeProfessionItem(NamedTuple):
     weight_in_group: int
     level: int
@@ -93,15 +97,11 @@ class ResumeProfessionItem(NamedTuple):
     dateUpdate: str
     url: str
     groupID: int
-
-
-class ProfessionWithSimilarResumes(NamedTuple):
-    resume: DBResumeProfession
-    similar_id: int # общее число для обозначения индефикатора группы похожих резюме  
+  
 
 class ResumeGroup(NamedTuple): # Класс, который хранит информацию о резюме в виде айди резюме и списка разложенных этапов в карьере
     ID: str # Ссылка резюме
-    ITEMS: tuple[ResumeProfessionItem] | tuple[ProfessionWithSimilarResumes]
+    ITEMS: tuple[ProfessionStep]
 
 class Variables(NamedTuple): # HH
     name_db: str
@@ -146,8 +146,8 @@ class Experience(NamedTuple): # Класс, хранящий информаци�
     work_places: set[WorkExperience]
 
 class Connection(NamedTuple): # Класс подключения к Базе данных
-    cursor: sqlite3.Cursor
     db: sqlite3.Connection
+    cursor: sqlite3.Cursor
 
 class CurrentSearchItem(NamedTuple): # С помощью этого класса мы имеем возможность парсить полную информацию о резюме
     url: str # ссылка на подробное описание резюме
@@ -157,6 +157,7 @@ class DefaultLevelProfession(NamedTuple): # Класс, позволяющий �
     profID: int
     level: int
     name: str
+    area: str
 
 class LevelKeyWords(NamedTuple): # Класс, для хранения ключевых слов, определяющих уровень должности в карьере соискателя 
     level: int
@@ -173,42 +174,27 @@ class LevelStatistic:
 
 class ProfessionStatistic(NamedTuple):
     prof_id: int
+    area: str
     levels: tuple[LevelStatistic]
 
-
-class WorkWay(NamedTuple):
-    post: str
-    brach: str
-    level: int
     
 class ConnectionBetweenSteps(NamedTuple):
     job_title: str
     links: tuple[int]
 
-class DatabaseTable(Enum):
-    STEP_2 = "Управление_персоналом"
-    STEP_3 = "NoneRepeatResumeDuplicates"
-    STEP_4 = "ResumesByDefaultNames"
-    STEP_5 = "ResumesWithoutStepsDuplicate"
-    STEP_6 = "UpdateProfessionsWithZeroLevel"
-    STEP_7 = "JoinSimilarWorkWaysBySimilarID"
-
-class JSONFILE(Enum):
-    STEP_2 = "JSON/step_2_groups_result.json"
-    STEP_3 = "JSON/step_3_groups_without_duplicates.json"
-    STEP_4 = "JSON/step_4_groups_with_default_names.json"
-    STEP_5 = "JSON/step_5_groups_without_job_steps_duplicate.json"
-    STEP_6 = "JSON/step_6_update_zero_levels.json"
-    STEP_7 = "JSON/step_7_join_similar_path_by_similar_id.json"
+class EdwicaProfession(NamedTuple):
+    """Класс используется для проверки, есть ли профессия из резюме в базе Эдвики и если есть, то мы можем определеить отрасль"""
+    name: str
+    area: str 
 
 # Данная константа помогает определить уровень должности по текущему на тот момент стажу. 
 # Используется, когда у нас недостаточно данных для автоматического определения уровня 
 # Измерения производятся в месяцах 
 DEFAULT_LEVEL_EXPERIENCE = (
-    DefaultExperience(name='intern', level=1, min_value=0, max_value=5),
-    DefaultExperience(name='junior', level=2, min_value=6, max_value=36),
-    DefaultExperience(name='middle', level=3, min_value=37, max_value=60),
-    DefaultExperience(name='senior', level=4, min_value=61, max_value=999) # 999 заменяет выражение 'от 61 месяца и выше'
+    DefaultExperience(name='intern', area='', level=1, min_value=0, max_value=5),
+    DefaultExperience(name='junior', area='', level=2, min_value=6, max_value=36),
+    DefaultExperience(name='middle', area='', level=3, min_value=37, max_value=60),
+    DefaultExperience(name='senior', area='', level=4, min_value=61, max_value=999) # 999 заменяет выражение 'от 61 месяца и выше'
     ) 
 
 # Кортеж с ключевыми словами для каждого уровня
@@ -219,12 +205,6 @@ LEVEL_KEYWORDS = (
     LevelKeyWords(level=4, key_words={'senior', 'руководитель', 'head of', 'портфель', 'team lead', 'управлять', 'начальник', 'директор', 'head'})
     )
     
-# Кортеж для объединения значений из БД с их заголовками. Используется для того
-JSONFIELDS = [
-    'id', 'weight_in_group', 'level', 'level_in_group', "area", 'name_of_profession', 'city', 'general_experience', 'specialization', 'salary', 
-    'higher_education_university', 'higher_education_direction', 'higher_education_year', 'languages', 'skills', 'advanced_training_name', 'advanced_training_direction',
-    'advanced_training_year', 'branch', 'subbranch', 'experience_interval', 'experience_duration', 'experience_post', "dateUpdate", 'user_id(url)', 'groupID']
-
 HH_VARIABLES = Variables(
     name_db='HH_RU',
     cities={

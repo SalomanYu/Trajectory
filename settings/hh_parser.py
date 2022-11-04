@@ -16,8 +16,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 
-from config import HH_VARIABLES, Experience,  Training, University, WorkExperience, CurrentSearchItem, Connection  # ,ResumeItem
-import tools
+from settings.config import HH_VARIABLES, Experience,  Training, University, WorkExperience, CurrentSearchItem, Connection  # ,ResumeItem
+import settings.tools as tools
 
 
 class Resume:

@@ -2,25 +2,29 @@
 """
 
 import logging
-import tools, config
-from config import ResumeGroup
+import settings.tools as tools, settings.config as config
+from settings.config import ProfessionStep, ResumeGroup
 from rich.progress import track
+
+
+
 
 
 def filtering_groups(log:logging, data: list[ResumeGroup]) -> tuple[list[ResumeGroup], list[ResumeGroup.ID]]:
     """
-        This method будет искать индентичные группы. Путем сравнения двух резюме, мы будем узнавать уровень схожести двух резюме
+    Этот метод будет искать одинаковые резюме. Когда мы будем сравнивать два резюме, 
+    мы будем видеть степень схожести двух резюме
     В основе лежит цикл - один ко многим, в котором мы пытаемся набрать необходимое количество очков для того,
-    чтобы понять насколько резюме похожи.
-    Когда мы наберем максимальное количество очков(4),  мы можем сделать вывод, что резюме одинаковые. Следовательно, одно из них
-    мы добавим в список дубликатов.
+    чтобы понять насколько два резюме повторяют друг друга.
+    Когда мы наберем максимальное количество очков(4), мы можем сделать вывод, что резюме одинаковые. 
+    Следовательно, одно из них мы добавим в список дубликатов и удалим.
     
-        В качестве аутпута выдаем кортеж - измененный массив данных в формате кортеж с кортежами  и так же выдаем список дубликатов
+    Вывод:измененный массив данных в формате кортеж с кортежами  и так же выдаем список дубликатов
     для последуюшего удаления
     """
 
     dublicate_list = [] # Инициализация переменной, которая будет хранить дубликаты
-
+    # length_generator = sum(1 for _ in data)
     log.info("Start cicle finding duplicates")
     for current_index in track(range(len(data)), description='[blue]Фильтруем резюме'):
         # В основе сравнения лежит метод - один ко многим. То есть берем по порядку группу и сраниваем ее со всеми остальными
@@ -36,24 +40,24 @@ def filtering_groups(log:logging, data: list[ResumeGroup]) -> tuple[list[ResumeG
             comporableJobStepsCount = len(data[comporable_index].ITEMS)
             comporableSteps = data[comporable_index].ITEMS
             
-            if currentResume.name == comporableResume.name:
+            if currentResume.title == comporableResume.title:
                 similar_count += 1
-            if currentResume.general_experience == comporableResume.general_experience:
+            if currentResume.generalExcepience == comporableResume.generalExcepience:
                 similar_count += 1
             if currentJobStepsCount == comporableJobStepsCount:
                 similar_count += 1
-                steps_similart_count = 0 # Считает количество совпадений в этапах
 
+                steps_similart_count = 0 # Считает количество совпадений в этапах
                 for step in range(currentJobStepsCount):                    
-                    if (currentSteps[step].experience_post == comporableSteps[step].experience_post) and \
-                       (currentSteps[step].experience_duration == comporableSteps[step].experience_duration) and \
-                       (currentSteps[step].experience_interval == comporableSteps[step].experience_interval):
+                    if (currentSteps[step].experiencePost == comporableSteps[step].experiencePost) and \
+                       (currentSteps[step].experienceDuration == comporableSteps[step].experienceDuration) and \
+                       (currentSteps[step].experienceInterval == comporableSteps[step].experienceInterval):
                             steps_similart_count += 1
                 if steps_similart_count == currentJobStepsCount:
                     similar_count += 1
 
             # Что мы делаем, когда находим дубликаты
-            if similar_count == 4 or (similar_count == 3 and currentResume.name != comporableResume.name):
+            if similar_count == 4 or (similar_count == 3 and currentResume.title != comporableResume.title):
                 log.warning("Duplicate finded! Look these links: \n1. %s \n2. %s", data[current_index].ID, data[comporable_index].ID)
                 # Так как одно из похожих резюме будет удалено, то попытаемся забрать у него некоторую информацию при условии, что она у него есть (типо берем  более свежую инфу)
                 for step in comporableSteps:
@@ -63,25 +67,24 @@ def filtering_groups(log:logging, data: list[ResumeGroup]) -> tuple[list[ResumeG
                         step.languages = currentResume.languages
                     if (currentResume.skills != step.skills) and (step.skills == ""):
                         step.skills = currentResume.skills
-                    if (currentResume.university_name != step.university_name) and (step.university_name == ''):
-                        step.university_name = currentResume.university_name
-                    if (currentResume.university_direction != step.university_direction) and (step.university_direction == ''):
-                        step.university_direction = currentResume.university_direction
-                    if (currentResume.university_year != step.university_year) and (step.university_year == ''):
-                        step.university_year = currentResume.university_year
+                    if (currentResume.educationUniversity != step.educationUniversity) and (step.educationUniversity == ''):
+                        step.educationUniversity = currentResume.educationUniversity
+                    if (currentResume.educationDirection != step.educationDirection) and (step.educationDirection == ''):
+                        step.educationDirection = currentResume.educationDirection
+                    if (currentResume.educationYear != step.educationYear) and (step.educationYear == ''):
+                        step.educationYear = currentResume.educationYear
                 dublicate_list.append(data[current_index].ID)
 
     return data, dublicate_list
 
 
-
-def remove_dublicates(log:logging, data:list[ResumeGroup], list_to_delete: list) -> dict:
+def remove_dublicates(log:logging, data:list[ResumeGroup], list_to_delete: list) -> list[ResumeGroup]:
     if list_to_delete:
         log.warning("Finded %d duplicates", len(list_to_delete))
         for candidat in data:
             if candidat.ID in list_to_delete: 
                 data.remove(candidat)
-                log.warning("Removed duplicate - %s", candidat.ITEMS[0].name)
+                log.warning("Removed duplicate - %s", candidat.ITEMS[0].title)
     else:
         log.warning("Duplicate list is empty")
     return data
