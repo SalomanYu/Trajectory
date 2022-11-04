@@ -146,7 +146,6 @@ def get_resume_by(tablename: str, similarPathId:int=None, area:str=None, resumeI
     id = ProfessionStep(*cursor.fetchone()[1:]).resumeId
     cursor.execute(f"SELECT * FROM {tablename} WHERE resumeId='{id}'")   
     return ResumeGroup(ID=id, ITEMS=[ProfessionStep(*(*step[1:], step[0])) for step in cursor.fetchall()]) 
-<<<<<<< HEAD
     
 
 # def save_final_result_to_db(similared_workways: list[ResumeGroup]) -> None:
@@ -162,6 +161,3 @@ def save_final_result_to_db(similared_workways: list[ResumeGroup]) -> None:
     for resume in similared_workways:
         for step in resume.ITEMS:
             add(table_name='New', data=step)
-=======
-    
->>>>>>> a778614650c45e0ec0375650062ae509fb4c374f
