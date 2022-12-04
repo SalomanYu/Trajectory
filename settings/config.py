@@ -7,13 +7,14 @@ from enum import Enum
 from typing import NamedTuple
 from dataclasses import dataclass, astuple
 
-
-
 PROFESSIONS_FOLDER_PATH = "Data/Professions"
 UNKNOWN_PROFESSIONS_PATH = "UnknownProfession.db" 
 CURRENT_MONTH = f"{date.today().month}.{date.today().year}" # для истории создается папка с текущей датой
-CURRENT_DATABASE_NAME = f"Data/SQL/10.2022/Way.db"
+CURRENT_DATABASE_NAME = f"Data/SQL/11.2022/IT_Way.db"
+PARSER_DATABASE_NAME = f"Data/SQL/10.2022/Parser.db"
+PARSER_DATABASE_TABLE = "parsed"
 POOLS = 10
+
 
 DEFAULT_VALUES = { # Словарь стандартных значений для определения опыта в месяцах конкретного уровня [Уровень: значение в месяцах]
         1: 5,
@@ -69,7 +70,7 @@ class ProfessionStep:
     dateUpdate: date
     resumeId: str
     similarPathId: int | None = None
-    db_id: set | None = None # Эта переменная отвечает за айди конкретного этапа. Он будет использоваться только внутри програмы, в бд эта константа проставляется автоматически (id)
+    db_id: int | None = None # Эта переменная отвечает за айди конкретного этапа. Он будет использоваться только внутри програмы, в бд эта константа проставляется автоматически (id)
 ###########################################################
 class ResumeProfessionItem(NamedTuple):
     weight_in_group: int
@@ -99,9 +100,10 @@ class ResumeProfessionItem(NamedTuple):
     groupID: int
   
 
-class ResumeGroup(NamedTuple): # Класс, который хранит информацию о резюме в виде айди резюме и списка разложенных этапов в карьере
+@dataclass(slots=True)
+class ResumeGroup: # Класс, который хранит информацию о резюме в виде айди резюме и списка разложенных этапов в карьере
     ID: str # Ссылка резюме
-    ITEMS: tuple[ProfessionStep]
+    ITEMS: list[ProfessionStep]
 
 class Variables(NamedTuple): # HH
     name_db: str
@@ -229,7 +231,7 @@ HH_VARIABLES = Variables(
         RequiredUrls(category='Lawyers', url='/search/resume?professional_role=145&professional_role=146&relocation=living_or_relocation&gender=unknown&search_period=0'),
         RequiredUrls(category='Another', url='/search/resume?professional_role=40&relocation=living_or_relocation&gender=unknown&search_period=0')
     ),
-    headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.60 Safari/537.36'})
+    headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36'})
 
 
 adding_to_db_template = lambda tablename: f"""INSERT INTO {tablename} 

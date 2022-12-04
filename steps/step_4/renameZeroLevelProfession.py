@@ -1,8 +1,9 @@
-import logging
+from loguru import logger
+
 import settings.tools as tools
 import settings.config as config
 from settings.config import EdwicaProfession, ResumeGroup, DefaultLevelProfession, ProfessionStatistic, LevelStatistic
-from steps.step_6.tools import get_default_average_value
+from steps.step_4.tools import get_default_average_value
 
 
 def corrent_min_interval_between_levels(data: list[ProfessionStatistic]) -> list[ProfessionStatistic]:
@@ -26,6 +27,7 @@ def corrent_min_interval_between_levels(data: list[ProfessionStatistic]) -> list
         while prof.levels[3].value - prof.levels[2].value < 12: prof.levels[3].value += 1 # Пока опыт синьора не превышает опыта миддла на 12 месяцев (год), добавляем к опыту синьора месяц опыта    
 
     return data_for_correct # возращаем измененный список со статистикой 
+
 
 def get_average_duration(resumes: list[ResumeGroup]) -> list[ProfessionStatistic[LevelStatistic]]:
     professions_statistic: list[ProfessionStatistic[LevelStatistic]] = []
@@ -90,19 +92,8 @@ def get_average_duration(resumes: list[ResumeGroup]) -> list[ProfessionStatistic
                             if item.prof_id == resume.groupId: item.levels[3].value = get_default_average_value(statistic=SENIOR_STATISTICS, level=4)
     return professions_statistic
 
-# def past_default_values(professions_statistic: list[ProfessionStatistic[LevelStatistic]]) -> list[ProfessionStatistic[LevelStatistic]]:
-#     """Метод используется для того, чтобы заменить пустые значения среднего уровня дефолтными"""
-#     for profession in professions_statistic:
-#         statistic = profession.levels
-#         for item in statistic:
-#             if not item.value:
-#                 for default in config.DEFAULT_LEVEL_EXPERIENCE:
-#                     if default.level == item.level:
-#                         item.value = default.min_value
-#     return professions_statistic
 
-
-def rename_zero_professions_by_experience(log:logging, resumes: list[ResumeGroup],
+def rename_zero_professions_by_experience(resumes: list[ResumeGroup],
 default_names:tuple[set[DefaultLevelProfession]], profession_default_values:list[ProfessionStatistic],
 edwica_db_names:list[EdwicaProfession]) -> list[ResumeGroup]:
     
@@ -121,15 +112,13 @@ edwica_db_names:list[EdwicaProfession]) -> list[ResumeGroup]:
                             current_name = [i.name for i in default_names 
                                 if i.level == statistic_level.level and i.profID == prof_statistic.prof_id 
                                 and i.area == job_steps[0].area and prof_statistic.area == job_steps[0].area][0]  
-                            # print(f"П1:{job_steps[0].title} -> {current_name}")
-                            log.info("[id:%d/Ex:%d/group:%d] Повысили нулевую профессию до %s уровня %s -> %s", job_steps[0].db_id,global_experience,prof_statistic.prof_id, statistic_level.name.upper(), job_steps[0].title, current_name)
+                            logger.info(f"[id:{job_steps[0].db_id}/Ex:{global_experience}/group:{prof_statistic.prof_id}] Повысили профессию до {statistic_level.name.upper()} уровня {job_steps[0].title} -> {current_name}")
                         except IndexError:
                             try: 
                                 current_name = [i.name for i in default_names 
                                     if i.level == statistic_level.level and i.area == job_steps[0].area and prof_statistic.area == job_steps[0].area][0]
                             except IndexError: exit(default_names)
-                            log.info("[BR-id:%d/Ex:%d/group:%d] Повысили нулевую профессию до %s уровня %s -> %s", job_steps[0].db_id,global_experience,prof_statistic.prof_id, statistic_level.name.upper(), job_steps[0].title, current_name)
-                            # print(f"П2:{job_steps[0].title} -> {current_name}")
+                            logger.info(f"[id:{job_steps[0].db_id}/Ex:{global_experience}/group:{prof_statistic.prof_id}] Повысили профессию до {statistic_level.name.upper()} уровня {job_steps[0].title} -> {current_name}")
 
                         for step in job_steps: step.title = current_name
                         for step in job_steps: step.level = statistic_level.level
@@ -163,19 +152,11 @@ edwica_db_names:list[EdwicaProfession]) -> list[ResumeGroup]:
                                             current_name = [i.name for i in default_names 
                                                 if i.level == statistic_level.level and i.profID == prof_statistic.prof_id
                                                 and prof_statistic.area == step.area and i.area == step.area][0]
-                                            # print(f"Д1[{step.db_id}]:{step.experiencePost} -> {current_name}")
-                                            # if step.db_id == 567965:
-                                                # exit(f"{prof_statistic=}\n{step.area=}")
-                                            log.info("[id:%d/Ex:%d/group:%d] Повысили нулевую должность  до %s уровня %s -> %s",step.db_id, post_experience, prof_statistic.prof_id, statistic_level.name.upper(), step.experiencePost, current_name)
+                                            logger.info(f"[id:{job_steps[0].db_id}/Ex:{post_experience}/group:{prof_statistic.prof_id}] Повысили должность до {statistic_level.name.upper()} уровня {step.experiencePost} -> {current_name}")
                                         except IndexError: 
                                             current_name = [i.name for i in default_names 
                                                 if i.level == statistic_level.level and prof_statistic.area == job_steps[0].area and i.area == job_steps[0].area][0]
-                                            # print(f"Д2:{step.experiencePost} -> {current_name}")
-                                            log.info("[BR-id:%d/Ex:%d/group:%d] Повысили нулевую должность  до %s уровня %s -> %s",step.db_id, post_experience, prof_statistic.prof_id, statistic_level.name.upper(), step.experiencePost, current_name)
+                                            logger.info(f"[id:{job_steps[0].db_id}/Ex:{post_experience}/group:{prof_statistic.prof_id}] Повысили должность до {statistic_level.name.upper()} уровня {step.experiencePost} -> {current_name}")
                                         step.experiencePost = current_name
                                         step_has_changed = True
     return resumes
-    # tools.save_resumes_to_json(log, resumes, filename=tools.JSONFILE.STEP_6.value)   
-
-if __name__ == "__main__":
-    corrent_min_interval_between_levels(data='')

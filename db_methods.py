@@ -138,14 +138,14 @@ def find_most_popular_way(resumes: ResumeGroup, area: str, profession_name:str, 
 
 
 def main():
-    areas = {'Ветеринария', 'Охрана и безопасность', 'бухгалтерия и налоги','Инвестиции, ценные бумаги и управление финансами', }
-    # areas =  {'бухгалтерия и налоги'}
-    resumes = group_steps_to_resume(data=database.get_all_resumes(table_name='New'))
+    # areas = {'Ветеринария', 'Охрана и безопасность', 'бухгалтерия и налоги','Инвестиции, ценные бумаги и управление финансами', }
+    areas =  {'Ит / Интернет / Телеком'}
+    resumes = group_steps_to_resume(data=database.get_all_resumes(table_name='resumes'))
     default_names, _ = get_default_names(areas=areas)
     # Собрали все стандарные наименования для каждого уровня и профобласти
     book = openpyxl.Workbook()
     sheet = book.active
-    row = 3
+    row = 1
     sheet.cell(row=row, column=1, value='id')
     sheet.cell(row=row, column=2, value='№ группы')
     sheet.cell(row=row, column=3, value='Профобласть')
@@ -153,7 +153,6 @@ def main():
     sheet.cell(row=row, column=5, value='Уровень')
     sheet.cell(row=row, column=6, value='Шаги')
     sheet.cell(row=row, column=7, value='Ссылка')
-
     for default in default_names:
         ways = find_most_popular_way(area=default.area, profession_name=default.name, count=3, resumes=resumes)
         for way in ways:
@@ -166,16 +165,7 @@ def main():
             sheet.cell(row=row, column=6, value=way.steps)
             sheet.cell(row=row, column=7, value=way.resumeId)
             print(default.name)
-    book.save(filename='Data/MostPopular.xlsx')        
+    book.save(filename='Data/MostPopular.xlsx')
+
 if __name__ == "__main__":
-    # Пример работы с методами
     main()
-    # Получить список всех популярных путей
-    # most_popular_way = get_most_popular_work_way(table_name="finance")
-    # for item in most_popular_way:
-    #     print(item)        
-    
-    # # Найти профессию среди этапов или заголовков резюме
-    # result = find_profession_in_work_ways(profession_name="Аналитик", table_name="finance", db_name="TestResult.db")
-    # for item in result:
-    #     print(f"{item.title}:{item.experiencePost}{item.resumeId}")

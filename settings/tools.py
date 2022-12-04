@@ -1,13 +1,12 @@
 import logging
 import os
-import json
 import xlrd
 import re
-from rich.progress import track
 from datetime import datetime
 
 from settings.config import *
 import settings.database as database
+
 
 def start_logging(logfile: str="logfile.log", folder:str="undetinfied") -> logging:
     """Метод будет ввести журналирование траектории.
@@ -24,23 +23,6 @@ def start_logging(logfile: str="logfile.log", folder:str="undetinfied") -> loggi
     logging.getLogger('selenium').setLevel(logging.WARNING)
     return logging
 
-
-# def load_resumes_json(log:logging, path:str, is_seven_step:bool = False) -> list[ResumeGroup]:
-#     """Метод будет собирает данные из json-файлов и будет их выдавать
-#     в удобном виде списка с элементами представляющими тип данных ResumeGroup"""
-#     with open(path, 'r', encoding="utf-8") as input_file:
-#         line = input_file.read()
-#         data = json.loads(line)
-
-#     log.info(f"Took json-data from {path}")
-
-#     if is_seven_step:
-#         resumes = []
-#         for key, value in data.items():
-#             items = [ProfessionWithSimilarResumes(resume=DBResumeProfession(*tuple(resume.values())[:-1]), similar_id=tuple(resume.values())[-1]) for resume in value]
-#             resumes.append(ResumeGroup(ID=key, ITEMS=items))
-#     else: resumes = [ResumeGroup(ID=key, ITEMS=[DBResumeProfession(*resume.values()) for resume in value]) for key, value in data.items()]
-#     return resumes
 
 def find_profession_excelFile_by_area(area: str) -> str | None:
     folder = "Data/Professions"
@@ -166,19 +148,6 @@ def add_profession_to_unknownDB(profession: str) -> None:
     print(f"Профессия {profession} была добавлена в список неопознанных профессий")
 
 
-
-# def move_dbData_to_groups(data: list[DBResumeProfession]) -> dict:
-#     """Метод получает на вход результат парсера в виде списка, каждого строка которого представляет собой
-#     одно место работы соискателя. Чтобы собрать все этапы в одно резюме нам требуется этот метод"""
-
-#     data_groups = {}
-#     for item in data:
-#         resume = DBResumeProfession(*item)
-#         if resume.url in data_groups: data_groups[resume.url].append(dict(zip(JSONFIELDS, item)))
-#         else: data_groups[resume.url] = [dict(zip(JSONFIELDS, item))]
-    
-#     return data_groups
-
 def get_default_names(areas: tuple[str]) -> tuple[set[DefaultLevelProfession], list[EdwicaProfession]]:
     files = (find_profession_excelFile_by_area(area) for area in areas)
     default_names: set[DefaultLevelProfession] = set()
@@ -213,20 +182,6 @@ def get_default_names(areas: tuple[str]) -> tuple[set[DefaultLevelProfession], l
 
     return default_names, edwica_db_names
 
-# def move_json_to_db(jsonfile: str = "_"):
-#     table = "Бухгалтерия_и_налоги"
-#     log = start_logging()
-#     database.create_table(table_name=table)
-#     data = load_resumes_json(log, path=jsonfile, is_seven_step=True)
-#     for resume in data:
-#         for item in resume.ITEMS:
-#             step = item.resume
-#             row = ProfessionStep(step.name, step.experience_post, step.experience_interval, step.experience_duration,
-#                 step.branch, step.subbranch, step.weight_in_group, step.level, step.weight_in_level, step.groupID, step.area,
-#                 step.city, step.general_experience, step.specialization, step.salary, step.university_name,
-#                 step.university_direction, step.university_year, step.languages, step.skills, step.training_name, step.training_direction,
-#                 step.training_year, step.dateUpdate, step.url, item.similar_id)
-#             database.add(table_name=table, data=row)
 
 def change_structure_table_in_sql(old_db: str, old_table: str, new_table: str, new_db: str = CURRENT_DATABASE_NAME):
     """Это временный метод, который помогает привести старую структуру БД к одному виду
@@ -246,6 +201,7 @@ def change_structure_table_in_sql(old_db: str, old_table: str, new_table: str, n
 
     db.close()
 
+
 def group_steps_to_resume(data: tuple[ProfessionStep]) -> list[ResumeGroup]:
     resume_dict = {} # Вида ID-ссылка на резюме:list[ProfessionsStep]
     for step in data:
@@ -257,13 +213,5 @@ def group_steps_to_resume(data: tuple[ProfessionStep]) -> list[ResumeGroup]:
     return result
 
 
-
-
-
 if __name__ == "__main__":
-    # print(connect_to_excel(path='/home/saloman/Documents/Edwica/Trajectory/Professions/23 Управление персоналом.xlsx'))
-    # names = {"hr-специалист","hello", "world", "find", "me"}
-    # for i in names:
-        # find_profession_in_proffessions_db(i)
-    
     print(find_profession_in_proffessions_db("Консультант по подбору персонала"))

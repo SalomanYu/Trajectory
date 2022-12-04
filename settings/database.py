@@ -1,7 +1,6 @@
 import sqlite3
 
-from settings.config import CURRENT_DATABASE_NAME, Connection, ProfessionStep, ResumeGroup, SimilarWay
-
+from settings.config import Connection, ProfessionStep, ResumeGroup, SimilarWay, CURRENT_DATABASE_NAME
 
 def connect(db_name: str = CURRENT_DATABASE_NAME) -> Connection:
     db = sqlite3.connect(db_name)
@@ -53,26 +52,36 @@ def get_all_resumes(table_name: str, db_name: str=CURRENT_DATABASE_NAME) -> tupl
     db.close()
     return data
 
-def add(table_name: str, data: ProfessionStep, db_name: str = CURRENT_DATABASE_NAME):
-    if isinstance(data.similarPathId, set):
-        similarPathId = [i for i in data.similarPathId][0]
-    else:
-        similarPathId = data.similarPathId
-
+def add(table_name: str, data: ProfessionStep | list[ProfessionStep], db_name: str = CURRENT_DATABASE_NAME) -> None:
+    """Надо разобраться почему я написал проверку снизу, ведь ProfessionStep это датакласс, у которого и так можно менять значения"""
+    create_table(table_name, db_name)
     db, cursor = connect(db_name)
+    if isinstance(data, list): column_count = len(data[0].__slots__) -1
+    else: column_count = len(data.__slots__)-1
+    
     query = f"""INSERT INTO {table_name}(title,experiencePost,experienceInterval,experienceDuration,
         branch,subbranch,weightInGroup ,level ,levelInGroup,groupId,area,city,generalExperience,specialization,salary,
         educationUniversity,educationDirection ,educationYear,languages ,skills,advancedTrainingTitle ,
         advancedTrainingDirection,advancedTrainingYear,dateUpdate,resumeId, similarPathId) 
-        VALUES({','.join(('?' for _ in range(len(data.__slots__)-1)))})""" # Минус 1 так как нам не нужен айди в бд
-    cursor.execute(query, (data.title, data.experiencePost, data.experienceInterval, data.experienceDuration,
+        VALUES({','.join(('?' for _ in range(column_count)))})""" # Минус 1 так как нам не нужен айди в бд
+    if isinstance(data, list):
+        for row in data:
+            cursor.execute(query, (row.title, row.experiencePost, row.experienceInterval, row.experienceDuration,
+                row.branch, row.subbranch, row.levelInGroup, row.level, row.weightInGroup, row.groupId, row.area,
+                row.city, row.generalExcepience, row.specialization, row.salary, row.educationUniversity,
+                row.educationDirection, row.educationYear, row.languages, row.skills, row.advancedTrainingTitle,
+                row.advancedTrainingDirection,row.advancedTrainingYear, row.dateUpdate, row.resumeId, 0))
+            # print(row.title)
+    else:
+        cursor.execute(query, (data.title, data.experiencePost, data.experienceInterval, data.experienceDuration,
                 data.branch, data.subbranch, data.levelInGroup, data.level, data.weightInGroup, data.groupId, data.area,
                 data.city, data.generalExcepience, data.specialization, data.salary, data.educationUniversity,
                 data.educationDirection, data.educationYear, data.languages, data.skills, data.advancedTrainingTitle,
-                data.advancedTrainingDirection,data.advancedTrainingYear, data.dateUpdate, data.resumeId, similarPathId))
+                data.advancedTrainingDirection,data.advancedTrainingYear, data.dateUpdate, data.resumeId, 0))
+        # print(data.title)
+        
     db.commit()
     db.close()
-    print(data.title)
 
 def clear_table(tablename: str, db_name: str = CURRENT_DATABASE_NAME):
     db, cursor = connect(db_name)
@@ -148,16 +157,8 @@ def get_resume_by(tablename: str, similarPathId:int=None, area:str=None, resumeI
     return ResumeGroup(ID=id, ITEMS=[ProfessionStep(*(*step[1:], step[0])) for step in cursor.fetchall()]) 
     
 
-# def save_final_result_to_db(similared_workways: list[ResumeGroup]) -> None:
-#     clear_table('New')
-    
-#     for resume in similared_workways:
-#         for step in resume.ITEMS:
-#             add(table_name='New', data=step)
-
 def save_final_result_to_db(similared_workways: list[ResumeGroup]) -> None:
-    clear_table('New')
-    print(len(similared_workways))
+    # clear_table('New')
+    create_table("resumes")
     for resume in similared_workways:
-        for step in resume.ITEMS:
-            add(table_name='New', data=step)
+        for step in resume.ITEMS: add(table_name='resumes', data=step)
