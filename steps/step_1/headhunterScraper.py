@@ -56,7 +56,8 @@ class Scraper:
     def __pagination_by_profession_search(self, professionUrl: str) -> ...:
         logger.info(f"Результат поиска: {professionUrl}")
         soup = self.__get_soup(professionUrl)
-        lastPageNum = soup.find_all("span", class_='pager-item-not-in-short-range')[-1].find("a",class_='bloko-button')
+        try:lastPageNum = soup.find_all("span", class_='pager-item-not-in-short-range')[-1].find("a",class_='bloko-button')
+        except:return
         if not lastPageNum:return
 
         for page in range(int(lastPageNum.text)):
